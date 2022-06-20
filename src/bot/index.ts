@@ -6,9 +6,9 @@ import { TelegramApi } from './telegram-api';
 type PluginDerived = { new (ctx: PluginContext): Plugin } & typeof Plugin;
 
 const mapping: [RegExp, PluginDerived][] = [
-  [/^(?:пик|пикча|img|image|pic|picture) (.+)/, GoogleImageSearch],
-  [/^(?:видео|video|youtube|ютуб) (.+)/, Youtube],
-    [/^(?:gif|гиф|гифка) (.+)/, Tenor],
+  [/^(?:пик|пикча|img|image|pic|picture) (.+)/i, GoogleImageSearch],
+  [/^(?:видео|video|youtube|ютуб) (.+)/i, Youtube],
+  [/^(?:gif|гиф|гифка) (.+)/i, Tenor],
   //   [/^(?:тикток|тик-ток|tiktok|tik-tok) (.+)/, Plugin],
 ];
 
