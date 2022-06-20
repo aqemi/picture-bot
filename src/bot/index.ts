@@ -1,13 +1,13 @@
 import type { ChatId } from 'node-telegram-bot-api';
 import { Env } from '../env';
-import { Context as PluginContext, GoogleImageSearch, Plugin } from './plugins';
+import { Context as PluginContext, GoogleImageSearch, Plugin, Youtube } from './plugins';
 import { TelegramApi } from './telegram-api';
 
 type PluginDerived = { new (ctx: PluginContext): Plugin } & typeof Plugin;
 
 const mapping: [RegExp, PluginDerived][] = [
   [/^(?:пик|пикча|img|image|pic|picture) (.+)/, GoogleImageSearch],
-  // [/^(?:видео|video|youtube|ютуб) (.+)/, Plugin],
+  [/^(?:видео|video|youtube|ютуб) (.+)/, Youtube],
   //   [/^(?:gif|гиф|гифка) (.+)/, Plugin],
   //   [/^(?:тикток|тик-ток|tiktok|tik-tok) (.+)/, Plugin],
 ];
@@ -34,9 +34,9 @@ export async function parseAndRespond({ text, resultNum, ...ctx }: Context): Pro
 
     await new TelegramApi(ctx.env.TG_TOKEN).sendMessage({
       chat_id: ctx.chatId,
-      text: `<code>${err?.name}: ${err?.message}</code>`,
+      text: `\`\`\`${err?.name}: ${err?.message}\`\`\``,
       reply_to_message_id: ctx.replyTo,
-      parse_mode: 'HTML',
+      parse_mode: 'MarkdownV2',
       disable_notification: true,
     });
   }

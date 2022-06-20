@@ -13,11 +13,18 @@ export class GoogleImageSearch extends Plugin {
     const nextResultNum = resultNum + 1;
     const nextResultNumInChunk = resultNumInChunk + 1;
 
-    const url = `https://www.googleapis.com/customsearch/v1?searchType=image&q=${encodeURIComponent(
-      this.ctx.query,
-    )}&key=${this.ctx.env.GOOGLE_API_KEY}&cx=${
-      this.ctx.env.CUSTOM_SEARCH_ENGINE_ID
-    }&num=${ITEMS_PER_PAGE}&start=${start}&safe=off&fields=items.link,queries.nextPage`;
+    const params = new URLSearchParams({
+      searchType: 'image',
+      q: this.ctx.query,
+      key: this.ctx.env.GOOGLE_API_KEY,
+      cx: this.ctx.env.CUSTOM_SEARCH_ENGINE_ID,
+      num: ITEMS_PER_PAGE.toString(),
+      start: start.toString(),
+      safe: 'off',
+      fields: 'items.link,queries.nextPage',
+    });
+
+    const url = `https://www.googleapis.com/customsearch/v1?${params}`;
 
     const response = await fetch(url, {
       cf: {

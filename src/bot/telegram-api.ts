@@ -57,4 +57,8 @@ export class TelegramApi {
   public async editMessageReplyMarkup(options: ApiEditMessageReplyMarkupOptions) {
     return this.makeRequest('editMessageReplyMarkup', options);
   }
+
+  public async getWebhookInfo() {
+    return this.makeRequest('getWebhookInfo', {});
+  }
 }
