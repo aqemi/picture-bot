@@ -2,6 +2,7 @@ import type {
   ChatId,
   EditMessageReplyMarkupOptions,
   InlineKeyboardMarkup,
+  SendAnimationOptions,
   SendMessageOptions,
   SendPhotoOptions,
   SetWebHookOptions,
@@ -21,6 +22,11 @@ interface ApiSetWebHookOptions extends SetWebHookOptions {
 interface ApiSendPhotoOptions extends SendPhotoOptions {
   chat_id: ChatId;
   photo: string;
+}
+
+interface ApiSendAnimationOptions extends SendAnimationOptions {
+  chat_id: ChatId;
+  animation: string;
 }
 
 interface ApiEditMessageReplyMarkupOptions extends EditMessageReplyMarkupOptions {
@@ -52,6 +58,10 @@ export class TelegramApi {
 
   public async sendPhoto(options: ApiSendPhotoOptions) {
     return this.makeRequest('sendPhoto', options);
+  }
+
+  public async sendAnimation(options: ApiSendAnimationOptions) {
+    return this.makeRequest('sendAnimation', options);
   }
 
   public async editMessageReplyMarkup(options: ApiEditMessageReplyMarkupOptions) {

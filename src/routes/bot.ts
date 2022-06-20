@@ -17,11 +17,15 @@ export async function bot(request: Request, env: Env): Promise<Response> {
       resultNum: 0,
     });
   } else if (payload.callback_query?.message?.reply_to_message?.text) {
-    await new TelegramApi(env.TG_TOKEN).editMessageReplyMarkup({
-      chat_id: payload.callback_query.message.chat.id,
-      message_id: payload.callback_query.message.message_id,
-      reply_markup: undefined,
-    });
+    try {
+      await new TelegramApi(env.TG_TOKEN).editMessageReplyMarkup({
+        chat_id: payload.callback_query.message.chat.id,
+        message_id: payload.callback_query.message.message_id,
+        reply_markup: undefined,
+      });
+    } catch (err) {
+      console.error(err);
+    }
     await parseAndRespond({
       env,
       text: payload.callback_query.message?.reply_to_message?.text,
