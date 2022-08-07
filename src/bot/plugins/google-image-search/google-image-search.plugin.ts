@@ -35,7 +35,7 @@ export class GoogleImageSearch extends Plugin {
     await throwOnFetchError(response);
     const results: Schema$Search = await response.json();
 
-    const result = results.items?.[resultNumInChunk].link;
+    const result = results.items?.[resultNumInChunk]?.link;
     if (!result) {
       return this.noneFound();
     }
@@ -56,7 +56,7 @@ export class GoogleImageSearch extends Plugin {
       if (this.retry > MAX_RETRIES) {
         throw err;
       } else {
-        console.error(`Retrying (${this.retry})`, err);
+        console.log(`Retrying (${this.retry})`, err);
         await this.processAndRespond(nextResultNum);
       }
     }

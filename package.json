@@ -22,7 +22,7 @@
   },
   "private": true,
   "scripts": {
-    "start": "wrangler dev",
+    "start": "wrangler dev --local",
     "deploy": "wrangler publish",
     "tunnel": "cloudflared tunnel --url http://localhost:8787",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
