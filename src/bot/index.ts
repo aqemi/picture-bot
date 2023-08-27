@@ -1,6 +1,6 @@
 import type { ChatId } from 'node-telegram-bot-api';
 import { Env } from '../env';
-import { Context as PluginContext, GoogleImageSearch, Plugin, Tenor, Youtube } from './plugins';
+import { Context as PluginContext, GoogleImageSearch, Keyboard, Plugin, Tenor, Youtube } from './plugins';
 import { TelegramApi } from './telegram-api';
 
 type PluginDerived = { new (ctx: PluginContext): Plugin } & typeof Plugin;
@@ -9,6 +9,7 @@ const mapping: [RegExp, PluginDerived][] = [
   [/^(?:пик|пикча|img|image|pic|picture) (.+)/i, GoogleImageSearch],
   [/^(?:видео|video|youtube|ютуб) (.+)/i, Youtube],
   [/^(?:gif|гиф|гифка) (.+)/i, Tenor],
+  [/^амикей даун/iu, Keyboard],
   //   [/^(?:тикток|тик-ток|tiktok|tik-tok) (.+)/, Plugin],
 ];
 
