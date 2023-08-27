@@ -26,7 +26,7 @@ export class Youtube extends Plugin {
     await throwOnFetchError(response);
     const results: Schema$SearchListResponse = await response.json();
 
-    const result = results.items?.[resultNum].id?.videoId;
+    const result = results.items?.[resultNum]?.id?.videoId;
     if (!result) {
       return this.noneFound();
     }
