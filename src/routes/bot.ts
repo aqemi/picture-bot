@@ -13,7 +13,7 @@ export async function bot(request: Request, env: Env): Promise<Response> {
       env,
       text: payload.message.text,
       chatId: payload.message.chat.id,
-      replyTo: payload.message.message_id,
+      replyTo: payload.message.reply_to_message?.message_id ?? payload.message.message_id,
       resultNum: 0,
     });
   } else if (payload.callback_query?.message?.reply_to_message?.text) {
