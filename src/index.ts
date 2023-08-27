@@ -16,7 +16,7 @@ type Handler = (req: Request, env: Env) => Promise<Response>;
 
 const buildMapping = (env: Env): Record<string, Handler> => ({
   '/install': install,
-  // '/info': info,
+  '/info': info,
   [botEndpoint(env.TG_TOKEN)]: bot,
 });
 
