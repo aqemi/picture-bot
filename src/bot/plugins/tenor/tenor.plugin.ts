@@ -26,7 +26,7 @@ export class Tenor extends Plugin {
     await throwOnFetchError(response);
     const results: SearchResponse = await response.json();
 
-    const result = results.results[resultNum].media_formats.mp4.url;
+    const result = results.results[resultNum]?.media_formats.mp4.url;
     if (!result) {
       return this.noneFound();
     }
