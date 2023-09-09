@@ -1,6 +1,7 @@
 import { ChatId, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 import { Env } from '../../env';
 import { TelegramApi } from '../telegram-api';
+import { stringify } from '../../utils/callback-data';
 
 export interface Context {
   env: Env;
@@ -28,9 +29,9 @@ export abstract class Plugin {
     });
   }
 
-  protected getMoreButton(resultNum: number): InlineKeyboardMarkup {
+  protected getMoreButton(resultNumber: number): InlineKeyboardMarkup {
     return {
-      inline_keyboard: [[{ text: 'moar!', callback_data: resultNum.toString() }]],
+      inline_keyboard: [[{ text: 'moar!', callback_data: stringify({ resultNumber, type: this.constructor.name }) }]],
     };
   }
 }

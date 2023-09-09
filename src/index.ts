@@ -9,15 +9,15 @@
  */
 
 import { Env } from './env';
-import { bot, info, install } from './routes';
+import { onTelegramUpdate, info, install, ok } from './routes';
 import { botEndpoint } from './utils/bot-endpoint';
 
 type Handler = (req: Request, env: Env) => Promise<Response>;
 
 const buildMapping = (env: Env): Record<string, Handler> => ({
   '/install': install,
-  '/info': info,
-  [botEndpoint(env.TG_TOKEN)]: bot,
+  '/': ok,
+  [botEndpoint(env.TG_TOKEN)]: onTelegramUpdate,
 });
 
 export default {
