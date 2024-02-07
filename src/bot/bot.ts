@@ -3,15 +3,42 @@ import { type Context as PluginContext } from './plugins';
 import { ResponseCallbackData, ResponseCallbackType } from './callback-data.interface';
 
 interface BotContext extends Omit<PluginContext, 'query'> {
-  originText: string;
+  /**
+   * Text to which user replies
+   */
+  originText: string | null;
+  /**
+   * Message to which user replies
+   */
+  originMessageId: number | null;
+  /**
+   * Message that triggered bot
+   */
   messageId: number;
+  /**
+   * User who initiated query
+   */
+  ownerId: number;
 }
 
 interface InvokeContext {
+  /**
+   * Text in message that triggered bot
+   */
   text: string;
 }
 
-interface CallbackContext extends ResponseCallbackData {}
+interface CallbackContext extends ResponseCallbackData {
+  /**
+   * User who initiated callback
+   */
+  initiatorId: number;
+  callbackQueryId: string;
+}
+
+interface DeleteOptions {
+  outrage: boolean;
+}
 
 export class Bot {
   constructor(private readonly ctx: BotContext) {}
@@ -44,7 +71,7 @@ export class Bot {
     await this.ctx.tg.sendMessage({
       chat_id: this.ctx.chatId,
       text: `\`\`\`${err?.name}: ${err?.message}\`\`\``,
-      reply_to_message_id: this.ctx.replyTo,
+      reply_to_message_id: this.ctx.originMessageId ?? this.ctx.messageId,
       parse_mode: 'MarkdownV2',
       disable_notification: true,
     });
@@ -53,13 +80,17 @@ export class Bot {
     try {
       switch (ctx.callback) {
         case ResponseCallbackType.Delete: {
-          return await this.deleteResponse();
+          await this.deleteResponse(ctx, { outrage: true });
+          break;
         }
         case ResponseCallbackType.Retry: {
-          return await this.retry(ctx);
+          await this.retry(ctx);
+          break;
         }
         case ResponseCallbackType.More: {
-          return await this.loadMore(ctx);
+          await this.removeKeyboard();
+          await this.loadMore(ctx);
+          break;
         }
         default: {
           throw new Error(`Unknown callback ${ctx.callback}`);
@@ -70,24 +101,58 @@ export class Bot {
     }
   }
 
-  private async deleteResponse(): Promise<void> {
+  private async deleteResponse(ctx: CallbackContext, options: DeleteOptions): Promise<boolean> {
+    if (ctx.initiatorId !== this.ctx.ownerId) {
+      if (options.outrage) {
+        await this.ctx.tg.sendMessage({
+          chat_id: this.ctx.chatId,
+          text: `${this.ctx.caption}, иди нахуй!`,
+          disable_notification: true,
+        });
+      }
+      await this.ctx.tg.answerCallbackQuery({
+        callback_query_id: ctx.callbackQueryId,
+        text: 'иди нахуй, пидор',
+        show_alert: true,
+      });
+      return false;
+    }
     await this.ctx.tg.deleteMessage({ chat_id: this.ctx.chatId, message_id: this.ctx.messageId });
+    return true;
   }
 
   private async retry(ctx: CallbackContext): Promise<void> {
-    await this.deleteResponse();
-    await this.loadMore(ctx);
+    const deleted = await this.deleteResponse(ctx, { outrage: false });
+    if (deleted) {
+      await this.loadMore(ctx);
+    }
   }
 
   private async loadMore(ctx: CallbackContext): Promise<void> {
     const { plugin, resultNumber } = ctx;
+    const { originText } = this.ctx;
     const Plugin = directlyInvokedPlugins.find((x) => x.name === plugin);
     if (!Plugin) {
       throw new Error(`Unknown plugin ${plugin}`);
     }
     if (!resultNumber) {
-      throw new Error(`resultNumber undefined`);
+      throw new Error(`originText is null`);
     }
-    return await new Plugin({ ...this.ctx, query: this.ctx.originText }).processAndRespond(resultNumber);
+    if (!originText) {
+      throw new Error(`originText is null`);
+    }
+    return await new Plugin({ ...this.ctx, query: originText }).processAndRespond(resultNumber);
+  }
+
+  private async removeKeyboard() {
+    try {
+      await this.ctx.tg.editMessageReplyMarkup({
+        chat_id: this.ctx.chatId,
+        message_id: this.ctx.messageId,
+        reply_markup: undefined,
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 }

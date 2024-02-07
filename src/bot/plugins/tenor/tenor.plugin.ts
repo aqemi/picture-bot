@@ -36,7 +36,7 @@ export class Tenor extends Plugin {
     await this.api.sendAnimation({
       chat_id: this.ctx.chatId,
       animation: result,
-      reply_to_message_id: this.ctx.replyTo,
+      reply_to_message_id: this.replyTo,
       reply_markup,
       disable_notification: true,
       caption: this.ctx.caption,

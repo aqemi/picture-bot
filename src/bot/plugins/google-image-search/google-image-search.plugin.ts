@@ -46,7 +46,7 @@ export class GoogleImageSearch extends Plugin {
       await this.api.sendPhoto({
         chat_id: this.ctx.chatId,
         photo: result,
-        reply_to_message_id: this.ctx.replyTo,
+        reply_to_message_id: this.replyTo,
         caption: this.ctx.caption,
         reply_markup,
         disable_notification: true,
