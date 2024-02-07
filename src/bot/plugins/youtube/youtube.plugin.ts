@@ -38,7 +38,7 @@ export class Youtube extends Plugin {
     await this.api.sendMessage({
       chat_id: this.ctx.chatId,
       text,
-      reply_to_message_id: this.ctx.replyTo,
+      reply_to_message_id: this.replyTo,
       reply_markup,
       disable_notification: true,
     });

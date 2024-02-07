@@ -3,7 +3,7 @@ import { ResponseCallbackData } from '../bot/callback-data.interface';
 type MinifiedResponseCallbackData = Record<number, number>;
 
 const minifiedKeysDict = Object.keys(new ResponseCallbackData()).reduce(
-  (dict, original, minified) => ({ ...dict, [original]: minified }),
+  (dict, original, index) => ({ ...dict, [original]: index }),
   {} as Record<string, number>,
 );
 const responseCallbackKeysDict = Object.entries(minifiedKeysDict).reduce(

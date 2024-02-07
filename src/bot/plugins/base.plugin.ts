@@ -9,16 +9,19 @@ export interface Context {
   env: Env;
   query: string;
   chatId: ChatId;
-  replyTo: number;
+  messageId: number;
+  originMessageId: number | null;
   caption?: string;
   tg: TelegramApi;
 }
 
 export abstract class Plugin {
   protected readonly api: TelegramApi;
+  protected readonly replyTo: number;
 
   constructor(protected readonly ctx: Context) {
     this.api = ctx.tg;
+    this.replyTo = ctx.originMessageId ?? ctx.messageId;
   }
 
   public abstract processAndRespond(resultNum: number): Promise<void>;
@@ -27,7 +30,7 @@ export abstract class Plugin {
     await this.api.sendMessage({
       chat_id: this.ctx.chatId,
       text: 'Не нашел \u{1F614}',
-      reply_to_message_id: this.ctx.replyTo,
+      reply_to_message_id: this.replyTo,
       disable_notification: true,
     });
   }

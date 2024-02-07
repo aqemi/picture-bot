@@ -1,4 +1,5 @@
 import type {
+  AnswerCallbackQueryOptions,
   ChatId,
   EditMessageReplyMarkupOptions,
   InlineKeyboardMarkup,
@@ -37,6 +38,10 @@ interface ApiEditMessageReplyMarkupOptions extends EditMessageReplyMarkupOptions
 interface ApiDeleteMessage {
   chat_id: ChatId;
   message_id: number;
+}
+
+interface ApiAnswerCallbackQuery extends AnswerCallbackQueryOptions {
+
 }
 
 export class TelegramApi {
@@ -80,5 +85,9 @@ export class TelegramApi {
 
   public async deleteMessage(options: ApiDeleteMessage) {
     return this.makeRequest('deleteMessage', options);
+  }
+
+  public async answerCallbackQuery(options: ApiAnswerCallbackQuery) {
+    return this.makeRequest('answerCallbackQuery', options);
   }
 }
