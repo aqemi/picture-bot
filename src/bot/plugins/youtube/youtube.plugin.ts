@@ -31,7 +31,7 @@ export class Youtube extends Plugin {
       return this.noneFound();
     }
 
-    const reply_markup = this.hasNext(results, nextResultNum) ? this.getMoreButton(nextResultNum) : undefined;
+    const reply_markup = this.hasNext(results, nextResultNum) ? this.getKeyboard(nextResultNum) : undefined;
 
     const caption = this.ctx.caption ? `${this.ctx.caption}\n` : '';
     const text = `${caption}https://www.youtube.com/watch?v=${result}`;

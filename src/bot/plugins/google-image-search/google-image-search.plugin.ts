@@ -40,7 +40,7 @@ export class GoogleImageSearch extends Plugin {
       return this.noneFound();
     }
 
-    const reply_markup = this.hasNext(results, nextResultNumInChunk) ? this.getMoreButton(nextResultNum) : undefined;
+    const reply_markup = this.hasNext(results, nextResultNumInChunk) ? this.getKeyboard(nextResultNum) : undefined;
 
     try {
       await this.api.sendPhoto({

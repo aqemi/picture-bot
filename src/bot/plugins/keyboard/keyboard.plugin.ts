@@ -2,7 +2,7 @@ import { Plugin } from '../base.plugin';
 
 export class Keyboard extends Plugin {
   public async processAndRespond(): Promise<void> {
-    this.api.sendMessage({
+    await this.api.sendMessage({
       chat_id: this.ctx.chatId,
       text: '+',
       reply_markup: {
