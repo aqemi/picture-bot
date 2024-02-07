@@ -1,7 +1,9 @@
 import { ChatId, InlineKeyboardMarkup } from 'node-telegram-bot-api';
-import { Env } from '../../env';
-import { TelegramApi } from '../telegram-api';
+
+import { type Env } from '../../env';
 import { stringify } from '../../utils/callback-data';
+import { ResponseCallbackType } from '../callback-data.interface';
+import { TelegramApi } from '../telegram-api';
 
 export interface Context {
   env: Env;
@@ -9,13 +11,14 @@ export interface Context {
   chatId: ChatId;
   replyTo: number;
   caption?: string;
+  tg: TelegramApi;
 }
 
 export abstract class Plugin {
   protected readonly api: TelegramApi;
 
   constructor(protected readonly ctx: Context) {
-    this.api = new TelegramApi(ctx.env.TG_TOKEN);
+    this.api = ctx.tg;
   }
 
   public abstract processAndRespond(resultNum: number): Promise<void>;
@@ -29,9 +32,29 @@ export abstract class Plugin {
     });
   }
 
-  protected getMoreButton(resultNumber: number): InlineKeyboardMarkup {
+  protected getKeyboard(resultNumber: number): InlineKeyboardMarkup {
     return {
-      inline_keyboard: [[{ text: 'moar!', callback_data: stringify({ resultNumber, type: this.constructor.name }) }]],
+      inline_keyboard: [
+        [
+          { text: 'del', callback_data: stringify({ callback: ResponseCallbackType.Delete }) },
+          {
+            text: 're:',
+            callback_data: stringify({
+              callback: ResponseCallbackType.Retry,
+              plugin: this.constructor.name,
+              resultNumber,
+            }),
+          },
+          {
+            text: 'moar!',
+            callback_data: stringify({
+              callback: ResponseCallbackType.More,
+              plugin: this.constructor.name,
+              resultNumber,
+            }),
+          },
+        ],
+      ],
     };
   }
 }

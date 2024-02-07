@@ -6,6 +6,7 @@ import type {
   SendMessageOptions,
   SendPhotoOptions,
   SetWebHookOptions,
+  
 } from 'node-telegram-bot-api';
 import { throwOnFetchError } from '../utils';
 
@@ -31,6 +32,11 @@ interface ApiSendAnimationOptions extends SendAnimationOptions {
 
 interface ApiEditMessageReplyMarkupOptions extends EditMessageReplyMarkupOptions {
   reply_markup?: InlineKeyboardMarkup;
+}
+
+interface ApiDeleteMessage {
+  chat_id: ChatId;
+  message_id: number;
 }
 
 export class TelegramApi {
@@ -70,5 +76,9 @@ export class TelegramApi {
 
   public async getWebhookInfo() {
     return this.makeRequest('getWebhookInfo', {});
+  }
+
+  public async deleteMessage(options: ApiDeleteMessage) {
+    return this.makeRequest('deleteMessage', options);
   }
 }

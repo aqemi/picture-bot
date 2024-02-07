@@ -31,7 +31,7 @@ export class Tenor extends Plugin {
       return this.noneFound();
     }
 
-    const reply_markup = this.hasNext(results, nextResultNum) ? this.getMoreButton(nextResultNum) : undefined;
+    const reply_markup = this.hasNext(results, nextResultNum) ? this.getKeyboard(nextResultNum) : undefined;
 
     await this.api.sendAnimation({
       chat_id: this.ctx.chatId,
