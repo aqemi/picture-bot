@@ -19,7 +19,7 @@ export class DeepAI extends Plugin {
     await throwOnFetchError(response);
     const result: DeepAiResponse = await response.json();
 
-    const reply_markup = this.getMoreButton(resultNum + 1);
+    const reply_markup = this.getKeyboard(resultNum + 1);
 
     await this.api.sendPhoto({
       chat_id: this.ctx.chatId,
