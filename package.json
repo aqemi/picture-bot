@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240129.0",
-    "@types/node-telegram-bot-api": "^0.64.2",
+    "@types/node-telegram-bot-api": "^0.64.6",
     "cloudflared": "^0.5.1",
     "concurrently": "^8.2.2",
     "eslint": "8.56.0",
@@ -29,11 +29,9 @@
     "start": "concurrently -k -n wrangler,tunnel -c auto npm:dev npm:tunnel",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "logs": "wrangler tail",
     "tunnel": "node tunnel.js",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
     "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'"
-  },
-  "overrides": {
-		"@types/node": "20.8.3"
-	}
+  }
 }
