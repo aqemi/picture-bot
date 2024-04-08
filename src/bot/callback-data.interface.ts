@@ -8,4 +8,5 @@ export class ResponseCallbackData {
   callback: ResponseCallbackType;
   plugin?: string;
   resultNumber?: number;
+  ownerId: number;
 }

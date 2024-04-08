@@ -20,7 +20,7 @@ export async function processTelegramPayload(payload: Update, env: Env) {
       messageId: payload.message.message_id,
       originMessageId: payload.message.reply_to_message?.message_id ?? null,
       originText: payload.message.reply_to_message?.text ?? null,
-      ownerId: payload.message.from?.id,
+      initiatorId: payload.message.from.id,
     }).parseMessageAndRespond({
       text: payload.message.text,
     });
@@ -37,7 +37,7 @@ export async function processTelegramPayload(payload: Update, env: Env) {
       originMessageId: payload.callback_query.message?.reply_to_message.message_id,
       originText: payload.callback_query.message?.reply_to_message.text,
       caption: mention(payload.callback_query.from),
-      ownerId: payload.callback_query.message.reply_to_message.from?.id,
+      initiatorId: callbackData.ownerId,
     }).answerCallback({
       ...callbackData,
       callbackQueryId: payload.callback_query.id,

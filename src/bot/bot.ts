@@ -18,7 +18,7 @@ interface BotContext extends Omit<PluginContext, 'query'> {
   /**
    * User who initiated query
    */
-  ownerId: number;
+  initiatorId: number;
 }
 
 interface InvokeContext {
@@ -34,10 +34,6 @@ interface CallbackContext extends ResponseCallbackData {
    */
   initiatorId: number;
   callbackQueryId: string;
-}
-
-interface DeleteOptions {
-  outrage: boolean;
 }
 
 export class Bot {
@@ -80,7 +76,7 @@ export class Bot {
     try {
       switch (ctx.callback) {
         case ResponseCallbackType.Delete: {
-          await this.deleteResponse(ctx, { outrage: true });
+          await this.deleteResponse(ctx);
           break;
         }
         case ResponseCallbackType.Retry: {
@@ -101,17 +97,10 @@ export class Bot {
     }
   }
 
-  private async deleteResponse(ctx: CallbackContext, options: DeleteOptions): Promise<boolean> {
-    if (ctx.initiatorId !== this.ctx.ownerId) {
-      if (options.outrage) {
-        await this.ctx.tg.sendMessage({
-          chat_id: this.ctx.chatId,
-          text: `${this.ctx.caption}, иди нахуй!`,
-          disable_notification: true,
-        });
-      }
+  private async deleteResponse(callbackContext: CallbackContext): Promise<boolean> {
+    if (callbackContext.initiatorId !== this.ctx.initiatorId) {
       await this.ctx.tg.answerCallbackQuery({
-        callback_query_id: ctx.callbackQueryId,
+        callback_query_id: callbackContext.callbackQueryId,
         text: 'иди нахуй, пидор',
         show_alert: true,
       });
@@ -122,7 +111,7 @@ export class Bot {
   }
 
   private async retry(ctx: CallbackContext): Promise<void> {
-    const deleted = await this.deleteResponse(ctx, { outrage: false });
+    const deleted = await this.deleteResponse(ctx);
     if (deleted) {
       await this.loadMore(ctx);
     }

@@ -1,4 +1,4 @@
-import { ChatId, InlineKeyboardMarkup } from 'node-telegram-bot-api';
+import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 import { type Env } from '../../env';
 import { stringify } from '../../utils/callback-data';
@@ -8,11 +8,12 @@ import { TelegramApi } from '../telegram-api';
 export interface Context {
   env: Env;
   query: string;
-  chatId: ChatId;
+  chatId: number;
   messageId: number;
   originMessageId: number | null;
   caption?: string;
   tg: TelegramApi;
+  initiatorId: number;
 }
 
 export abstract class Plugin {
@@ -39,13 +40,17 @@ export abstract class Plugin {
     return {
       inline_keyboard: [
         [
-          { text: 'del', callback_data: stringify({ callback: ResponseCallbackType.Delete }) },
+          {
+            text: 'del',
+            callback_data: stringify({ callback: ResponseCallbackType.Delete, ownerId: this.ctx.initiatorId }),
+          },
           {
             text: 're:',
             callback_data: stringify({
               callback: ResponseCallbackType.Retry,
               plugin: this.constructor.name,
               resultNumber,
+              ownerId: this.ctx.initiatorId,
             }),
           },
           {
@@ -54,6 +59,7 @@ export abstract class Plugin {
               callback: ResponseCallbackType.More,
               plugin: this.constructor.name,
               resultNumber,
+              ownerId: this.ctx.initiatorId,
             }),
           },
         ],
