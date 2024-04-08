@@ -10,11 +10,10 @@ export async function install(req: Request, env: Env): Promise<Response> {
     allowed_updates: ['message', 'callback_query'],
     drop_pending_updates: true,
   });
-  const getWebhookInfo = await api.getWebhookInfo();
   return new Response(
     JSON.stringify({
       seWebhook: await setWebhook.json(),
-      getWebhookInfo: await getWebhookInfo.json(),
+      getWebhookInfo: await api.getWebhookInfo(),
     }),
   );
 }

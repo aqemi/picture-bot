@@ -17,6 +17,7 @@ type Handler = (req: Request, env: Env) => Promise<Response>;
 const buildMapping = (env: Env): Record<string, Handler> => ({
   '/install': install,
   '/': ok,
+  '/info': info,
   [botEndpoint(env.TG_TOKEN)]: onTelegramUpdate,
 });
 
