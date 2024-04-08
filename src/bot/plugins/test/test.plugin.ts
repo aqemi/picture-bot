@@ -22,6 +22,7 @@ export class Test extends Plugin {
 
       case '4': {
         await this.ctx.tg.deleteMessage({ chat_id: 0, message_id: 0 });
+        break;
       }
     }
   }

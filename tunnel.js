@@ -1,10 +1,12 @@
+const { spawn } = require('node:child_process');
 const { tunnel, install, bin } = require('cloudflared');
 const wait = require('wait-on');
 
 (async function () {
   try {
-    process.env.VERBOSE='true';
+    process.env.VERBOSE = 'true';
     await install(bin);
+    spawn(bin, ['--version'], { stdio: 'inherit', shell: true });
     await wait({ resources: ['http://localhost:8787'], timeout: 10_000 });
     const { url, connections, child, stop } = tunnel({ '--url': 'localhost:8787' });
 
@@ -27,8 +29,11 @@ const wait = require('wait-on');
       process.exit(0);
     });
 
-    const { default: open } = await import('open');
-    await open(`${link}/install`);
+    await wait({ resources: [link], timeout: 60_000 });
+
+    const response = await fetch(`${link}/install`);
+    const data = await response.json();
+    console.log('Bot registered', data);
   } catch (err) {
     console.error(err);
     process.exit(1);
