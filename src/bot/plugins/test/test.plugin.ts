@@ -2,6 +2,7 @@ import { throwOnFetchError } from '../../../utils';
 import { Plugin } from '../base.plugin';
 
 export class Test extends Plugin {
+  static matcher = /^test (\d+)$/i;
   public async processAndRespond(): Promise<void> {
     switch (this.ctx.query) {
       case '1': {
@@ -21,7 +22,7 @@ export class Test extends Plugin {
       }
 
       case '4': {
-        await this.ctx.tg.deleteMessage({ chat_id: 0, message_id: 0 });
+        await this.api.deleteMessage({ chat_id: 0, message_id: 0 });
         break;
       }
     }

@@ -6,18 +6,20 @@ const ITEMS_PER_PAGE = 10;
 const MAX_RETRIES = 5;
 
 export class GoogleImageSearch extends Plugin {
+  static matcher = /^(?:пик|пикча|img|image|pic|picture)(?: (.+))?$/i;
+
   private retry = 0;
-  public async processAndRespond(resultNum: number): Promise<void> {
-    const start = Math.floor(resultNum / ITEMS_PER_PAGE) * 10 + 1;
-    const resultNumInChunk = resultNum % ITEMS_PER_PAGE;
-    const nextResultNum = resultNum + 1;
+  public async processAndRespond({ resultNumber }: { resultNumber: number }): Promise<void> {
+    const start = Math.floor(resultNumber / ITEMS_PER_PAGE) * 10 + 1;
+    const resultNumInChunk = resultNumber % ITEMS_PER_PAGE;
+    const nextResultNum = resultNumber + 1;
     const nextResultNumInChunk = resultNumInChunk + 1;
 
     const params = new URLSearchParams({
       searchType: 'image',
       q: this.ctx.query,
-      key: this.ctx.env.GOOGLE_API_KEY,
-      cx: this.ctx.env.CUSTOM_SEARCH_ENGINE_ID,
+      key: this.env.GOOGLE_API_KEY,
+      cx: this.env.CUSTOM_SEARCH_ENGINE_ID,
       num: ITEMS_PER_PAGE.toString(),
       start: start.toString(),
       safe: 'off',
@@ -37,7 +39,7 @@ export class GoogleImageSearch extends Plugin {
 
     const result = results.items?.[resultNumInChunk]?.link;
     if (!result) {
-      return this.noneFound();
+      return this.notFound();
     }
 
     const reply_markup = this.hasNext(results, nextResultNumInChunk) ? this.getKeyboard(nextResultNum) : undefined;
@@ -47,7 +49,7 @@ export class GoogleImageSearch extends Plugin {
         chat_id: this.ctx.chatId,
         photo: result,
         reply_to_message_id: this.replyTo,
-        caption: this.ctx.caption,
+        caption: this.ctx.caption ?? undefined,
         reply_markup,
         disable_notification: true,
       });
@@ -57,7 +59,7 @@ export class GoogleImageSearch extends Plugin {
         throw err;
       } else {
         console.log(`Retrying (${this.retry})`, err);
-        await this.processAndRespond(nextResultNum);
+        await this.processAndRespond({ resultNumber: nextResultNum });
       }
     }
   }

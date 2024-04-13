@@ -5,11 +5,12 @@ import { SearchResponse } from './tenor-api.interface';
 const ITEMS_PER_PAGE = 50;
 
 export class Tenor extends Plugin {
-  public async processAndRespond(resultNum: number): Promise<void> {
-    const nextResultNum = resultNum + 1;
+  static matcher = /^(?:gif|гиф|гифка)(?: (.+))?$/i;
+  public async processAndRespond({ resultNumber }: { resultNumber: number }): Promise<void> {
+    const nextResultNum = resultNumber + 1;
     const params = new URLSearchParams({
       q: this.ctx.query,
-      key: this.ctx.env.GOOGLE_API_KEY,
+      key: this.env.GOOGLE_API_KEY,
       limit: ITEMS_PER_PAGE.toString(),
       contentfilter: 'off',
       media_filter: 'mp4',
@@ -26,9 +27,9 @@ export class Tenor extends Plugin {
     await throwOnFetchError(response);
     const results: SearchResponse = await response.json();
 
-    const result = results.results[resultNum]?.media_formats.mp4.url;
+    const result = results.results[resultNumber]?.media_formats.mp4.url;
     if (!result) {
-      return this.noneFound();
+      return this.notFound();
     }
 
     const reply_markup = this.hasNext(results, nextResultNum) ? this.getKeyboard(nextResultNum) : undefined;
@@ -39,7 +40,7 @@ export class Tenor extends Plugin {
       reply_to_message_id: this.replyTo,
       reply_markup,
       disable_notification: true,
-      caption: this.ctx.caption,
+      caption: this.ctx.caption ?? undefined,
     });
   }
 
