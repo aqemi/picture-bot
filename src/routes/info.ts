@@ -1,4 +1,4 @@
-import { TelegramApi } from '../bot';
+import { TelegramApi } from '../bot/telegram-api';
 import { Env } from '../env';
 
 export async function info(req: Request, env: Env): Promise<Response> {

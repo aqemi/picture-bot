@@ -5,12 +5,14 @@ import { Schema$SearchListResponse } from './youtube-api.interface';
 const ITEMS_PER_PAGE = 50;
 
 export class Youtube extends Plugin {
-  public async processAndRespond(resultNum: number): Promise<void> {
-    const nextResultNum = resultNum + 1;
+  static matcher = /^(?:видео|video|youtube|ютуб)(?: (.+))?$/i;
+
+  public async processAndRespond({ resultNumber }: { resultNumber: number }): Promise<void> {
+    const nextResultNum = resultNumber + 1;
     const params = new URLSearchParams({
       type: 'video',
       q: this.ctx.query,
-      key: this.ctx.env.GOOGLE_API_KEY,
+      key: this.env.GOOGLE_API_KEY,
       maxResults: ITEMS_PER_PAGE.toString(),
       safeSearch: 'none',
       fields: 'items.id.videoId',
@@ -26,9 +28,9 @@ export class Youtube extends Plugin {
     await throwOnFetchError(response);
     const results: Schema$SearchListResponse = await response.json();
 
-    const result = results.items?.[resultNum]?.id?.videoId;
+    const result = results.items?.[resultNumber]?.id?.videoId;
     if (!result) {
-      return this.noneFound();
+      return this.notFound();
     }
 
     const reply_markup = this.hasNext(results, nextResultNum) ? this.getKeyboard(nextResultNum) : undefined;

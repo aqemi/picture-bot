@@ -1,39 +1,42 @@
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 import { type Env } from '../../env';
-import { stringify } from '../../utils/callback-data';
-import { ResponseCallbackType } from '../callback-data.interface';
-import { TelegramApi } from '../telegram-api';
+import { ResponseCallbackType, stringify } from '../../utils/callback-data';
+import { type TelegramApi } from '../telegram-api';
 
-export interface Context {
-  env: Env;
+export type Context = {
   query: string;
   chatId: number;
-  messageId: number;
-  originMessageId: number | null;
-  caption?: string;
-  tg: TelegramApi;
+  invokeMessageId: number;
+  repliedMessageId: number | null;
+  caption: string | null;
   initiatorId: number;
-}
+};
 
 export abstract class Plugin {
-  protected readonly api: TelegramApi;
   protected readonly replyTo: number;
 
-  constructor(protected readonly ctx: Context) {
-    this.api = ctx.tg;
-    this.replyTo = ctx.originMessageId ?? ctx.messageId;
+  constructor(
+    protected readonly ctx: Context,
+    protected readonly api: TelegramApi,
+    protected readonly env: Env,
+  ) {
+    this.replyTo = ctx.repliedMessageId ?? ctx.invokeMessageId;
   }
 
-  public abstract processAndRespond(resultNum: number): Promise<void>;
+  public abstract processAndRespond(arg: { resultNumber: number }): Promise<void>;
 
-  protected async noneFound() {
+  protected async notFound() {
     await this.api.sendMessage({
       chat_id: this.ctx.chatId,
       text: 'Не нашел \u{1F614}',
       reply_to_message_id: this.replyTo,
       disable_notification: true,
     });
+  }
+
+  static get matcher(): RegExp {
+    throw new Error(`Matcher is not set on ${this.name} plugin`);
   }
 
   protected getKeyboard(resultNumber: number): InlineKeyboardMarkup {
@@ -67,3 +70,5 @@ export abstract class Plugin {
     };
   }
 }
+
+export type PluginDerived = { new (ctx: Context, api: TelegramApi, env: Env): Plugin } & typeof Plugin;
