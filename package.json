@@ -11,18 +11,18 @@
     ]
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240129.0",
-    "@types/node-telegram-bot-api": "^0.64.6",
-    "cloudflared": "^0.5.1",
-    "concurrently": "^8.2.2",
+    "@cloudflare/workers-types": "^4.20241112.0",
+    "@types/node-telegram-bot-api": "^0.64.7",
+    "cloudflared": "^0.5.3",
+    "concurrently": "^9.1.0",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-config-typescript": "3.0.0",
-    "open": "^10.0.3",
-    "prettier": "^3.2.5",
-    "typescript": "^5.3.3",
-    "wait-on": "^7.2.0",
-    "wrangler": "^3.50.0"
+    "open": "^10.1.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.7.2",
+    "wait-on": "^8.0.1",
+    "wrangler": "^3.90.0"
   },
   "private": true,
   "scripts": {
@@ -31,7 +31,7 @@
     "deploy": "wrangler deploy",
     "logs": "wrangler tail",
     "tunnel": "node tunnel.js",
-    "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}'",
     "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'"
   }
 }

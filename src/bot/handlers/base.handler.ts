@@ -11,7 +11,13 @@ export abstract class TelegramUpdateHandler {
   constructor(
     protected readonly api: TelegramApi,
     protected readonly env: Env,
-  ) {}
+  ) {
+
+    const pattern = Object.values(env).join('|')
+    this.sanitizeExpr = new RegExp(pattern, 'g');
+  }
+
+  private sanitizeExpr: RegExp;
 
   public abstract match(payload: TelegramUpdate): boolean;
 
@@ -20,6 +26,7 @@ export abstract class TelegramUpdateHandler {
   protected async reportError(err: unknown, { chatId, replyTo }: ReportErrorOptions): Promise<void> {
     console.error(err);
     const typedError = this.ensureError(err);
+    typedError.message = this.sanitize(typedError.message);
     await this.api.sendMessage({
       chat_id: chatId,
       text: `\`\`\`${typedError}\`\`\``,
@@ -31,6 +38,10 @@ export abstract class TelegramUpdateHandler {
 
   private ensureError(err: unknown): Error {
     return err instanceof Error ? err : new Error(JSON.stringify(err));
+  }
+
+  private sanitize(text: string): string {
+    return text.replace(this.sanitizeExpr, '****');
   }
 
   protected async removeKeyboard(chatId: number, messageId: number) {
@@ -46,4 +57,6 @@ export abstract class TelegramUpdateHandler {
   }
 }
 
-export type TelegramUpdateHandlerDerived = { new (api: TelegramApi, env: Env): TelegramUpdateHandler } & typeof TelegramUpdateHandler;
+export type TelegramUpdateHandlerDerived = {
+  new (api: TelegramApi, env: Env): TelegramUpdateHandler;
+} & typeof TelegramUpdateHandler;

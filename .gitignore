@@ -173,3 +173,4 @@ dist
 cloudflared.exe
 
 .wrangler
+prod.vars.json

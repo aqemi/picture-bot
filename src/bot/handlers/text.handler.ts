@@ -22,7 +22,7 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
           const query = match === undefined && repliedText ? repliedText : match;
           if (!query) {
             if (this.env.NODE_ENV === 'development') {
-              console.debug(`No match for text ${text} in ${Plugin.name}`);
+              console.debug(`No match for text ${text} in ${Plugin.name}`, payload);
             }
             return;
           }
@@ -37,7 +37,7 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
           return await new Plugin(ctx, this.api, this.env).processAndRespond({ resultNumber: 0 });
         }
       }
-      console.debug(`No match for text ${text}`);
+      console.debug(`No match for text ${text}`, payload);
     } catch (err) {
       await this.reportError(err, { chatId, replyTo });
     }

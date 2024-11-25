@@ -1,4 +1,3 @@
-
 // Copyright 2020 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 /**
  * Promotion result.
  */
- interface Schema$Promotion {
+interface Schema$Promotion {
   /**
    * An array of block objects for this promotion.
    */
@@ -50,7 +48,7 @@
 /**
  * A custom search result.
  */
- interface Schema$Result {
+interface Schema$Result {
   /**
    * Indicates the ID of Google's cached version of the search result.
    */
@@ -127,7 +125,7 @@
 /**
  * Response to a custom search request.
  */
- export interface Schema$Search {
+export interface Schema$Search {
   /**
    * Metadata and refinements associated with the given search engine, including: * The name of the search engine that was used for the query. * A set of [facet objects](https://developers.google.com/custom-search/docs/refinements#create) (refinements) you can use for refining a search.
    */
@@ -281,6 +279,3 @@
    */
   url?: { template?: string; type?: string } | null;
 }
-
-
-

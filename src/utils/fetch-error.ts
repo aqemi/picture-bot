@@ -14,7 +14,7 @@ export class FetchError extends Error {
 export async function throwOnFetchError(res: Response) {
   if (!res.ok) {
     const message = await res.text();
-    throw new FetchError(`${res.url.replace(/\/bot.+\//g, '/***/')} - ${res.statusText}: ${message}`, {
+    throw new FetchError(`${res.url} - ${res.statusText}: ${message}`, {
       code: res.status,
     });
   }
