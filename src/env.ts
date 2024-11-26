@@ -11,4 +11,6 @@ export interface Env {
   GOOGLE_API_KEY: string;
   CUSTOM_SEARCH_ENGINE_ID: string;
   NODE_ENV?: string;
+  BOT_USERNAME: string;
 }
+

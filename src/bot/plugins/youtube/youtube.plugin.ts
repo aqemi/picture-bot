@@ -1,17 +1,17 @@
 import { throwOnFetchError } from '../../../utils';
-import { Plugin } from '../base.plugin';
+import { RegexBasedPlugin } from '../regex-based.plugin';
 import { Schema$SearchListResponse } from './youtube-api.interface';
 
 const ITEMS_PER_PAGE = 50;
 
-export class Youtube extends Plugin {
-  static matcher = /^(?:видео|video|youtube|ютуб)(?: (.+))?$/i;
+export class Youtube extends RegexBasedPlugin {
+  protected regex = /^(?:видео|video|youtube|ютуб)(?: (.+))?$/i;
 
-  public async processAndRespond({ resultNumber }: { resultNumber: number }): Promise<void> {
+  public async run({ resultNumber = 0 }: { resultNumber: number }): Promise<void> {
     const nextResultNum = resultNumber + 1;
     const params = new URLSearchParams({
       type: 'video',
-      q: this.ctx.query,
+      q: this.query,
       key: this.env.GOOGLE_API_KEY,
       maxResults: ITEMS_PER_PAGE.toString(),
       safeSearch: 'none',

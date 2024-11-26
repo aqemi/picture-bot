@@ -4,40 +4,26 @@ import { type Env } from '../../env';
 import { ResponseCallbackType, stringify } from '../../utils/callback-data';
 import { type TelegramApi } from '../telegram-api';
 
-export type Context = {
-  query: string;
+export type InvocationContext = {
   chatId: number;
-  invokeMessageId: number;
-  repliedMessageId: number | null;
-  caption: string | null;
+  messageId: number;
+  replyToId?: number;
+  caption?: string;
   initiatorId: number;
+  text: string;
+  replyToText?: string;
+  replyToThisBot: boolean;
 };
 
-export abstract class Plugin {
-  protected readonly replyTo: number;
-
+export abstract class BasePlugin {
   constructor(
-    protected readonly ctx: Context,
+    protected readonly ctx: InvocationContext,
     protected readonly api: TelegramApi,
     protected readonly env: Env,
-  ) {
-    this.replyTo = ctx.repliedMessageId ?? ctx.invokeMessageId;
-  }
+  ) {}
 
-  public abstract processAndRespond(arg: { resultNumber: number }): Promise<void>;
-
-  protected async notFound() {
-    await this.api.sendMessage({
-      chat_id: this.ctx.chatId,
-      text: 'Не нашел \u{1F614}',
-      reply_to_message_id: this.replyTo,
-      disable_notification: true,
-    });
-  }
-
-  static get matcher(): RegExp {
-    throw new Error(`Matcher is not set on ${this.name} plugin`);
-  }
+  public abstract match(): boolean;
+  public abstract run(arg: object): Promise<void>;
 
   protected getKeyboard(resultNumber: number): InlineKeyboardMarkup {
     return {
@@ -71,4 +57,6 @@ export abstract class Plugin {
   }
 }
 
-export type PluginDerived = { new (ctx: Context, api: TelegramApi, env: Env): Plugin } & typeof Plugin;
+export type PluginDerived = {
+  new (ctx: InvocationContext, api: TelegramApi, env: Env): BasePlugin;
+} & typeof BasePlugin;

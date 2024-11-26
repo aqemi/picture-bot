@@ -1,10 +1,10 @@
 import { throwOnFetchError } from '../../../utils';
-import { Plugin } from '../base.plugin';
+import { RegexBasedPlugin } from '../regex-based.plugin';
 
-export class Test extends Plugin {
-  static matcher = /^test (\d+)$/i;
-  public async processAndRespond(): Promise<void> {
-    switch (this.ctx.query) {
+export class Test extends RegexBasedPlugin {
+  protected regex = /^test (\d+)$/i;
+  public async run(): Promise<void> {
+    switch (this.query) {
       case '1': {
         throw new Error('test');
       }

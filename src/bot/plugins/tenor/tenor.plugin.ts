@@ -1,15 +1,15 @@
 import { throwOnFetchError } from '../../../utils';
-import { Plugin } from '../base.plugin';
+import { RegexBasedPlugin } from '../regex-based.plugin';
 import { SearchResponse } from './tenor-api.interface';
 
 const ITEMS_PER_PAGE = 50;
 
-export class Tenor extends Plugin {
-  static matcher = /^(?:gif|гиф|гифка)(?: (.+))?$/i;
-  public async processAndRespond({ resultNumber }: { resultNumber: number }): Promise<void> {
+export class Tenor extends RegexBasedPlugin {
+  protected regex = /^(?:gif|гиф|гифка)(?: (.+))?$/i;
+  public async run({ resultNumber = 0 }: { resultNumber: number }): Promise<void> {
     const nextResultNum = resultNumber + 1;
     const params = new URLSearchParams({
-      q: this.ctx.query,
+      q: this.query,
       key: this.env.GOOGLE_API_KEY,
       limit: ITEMS_PER_PAGE.toString(),
       contentfilter: 'off',

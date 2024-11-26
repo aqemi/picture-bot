@@ -1,9 +1,10 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
-import { Context, GoogleImageSearch, Keyboard, PluginDerived, Tenor, Test, Youtube } from '../plugins';
+import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, Test, Youtube } from '../plugins';
 import { TelegramUpdateHandler } from './base.handler';
+import { MistralePlugin } from '../plugins/mistrale/mistrale.plugin';
 
-const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor, Keyboard, Test];
+const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor, Keyboard, Test, MistralePlugin];
 
 export class TelegramTextHandler extends TelegramUpdateHandler {
   match(payload: TelegramUpdate) {
@@ -12,34 +13,27 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
 
   async handle(payload: TelegramUpdate) {
     const chatId = defined(payload.message?.chat.id, 'chatId');
-    const replyTo = defined(payload.message?.reply_to_message?.message_id ?? payload.message?.message_id, 'replyTo');
     try {
-      const text = defined(payload.message?.text, 'text');
-      const repliedText = payload.message?.reply_to_message?.text;
+      const ctx: InvocationContext = {
+        chatId,
+        messageId: defined(payload.message?.message_id, 'message.message_id'),
+        replyToId: payload.message?.reply_to_message?.message_id,
+        initiatorId: defined(payload.message?.from?.id, 'message.from.id'),
+        text: defined(payload.message?.text, 'message.text'),
+        replyToText: payload.message?.reply_to_message?.text,
+        replyToThisBot: payload.message?.reply_to_message?.from?.username === this.botUsername,
+      };
+
       for (const Plugin of plugins) {
-        if (Plugin.matcher.test(text)) {
-          const [, match] = text.match(Plugin.matcher) ?? [];
-          const query = match === undefined && repliedText ? repliedText : match;
-          if (!query) {
-            if (this.env.NODE_ENV === 'development') {
-              console.debug(`No match for text ${text} in ${Plugin.name}`, payload);
-            }
-            return;
-          }
-          const ctx: Context = {
-            query,
-            chatId,
-            invokeMessageId: defined(payload.message?.message_id, 'invokeMessageId'),
-            repliedMessageId: payload.message?.reply_to_message?.message_id ?? null,
-            initiatorId: defined(payload.message?.from?.id, 'initiatorId'),
-            caption: null,
-          };
-          return await new Plugin(ctx, this.api, this.env).processAndRespond({ resultNumber: 0 });
+        const plugin = new Plugin(ctx, this.api, this.env);
+        if (plugin.match()) {
+          return await plugin.run({});
         }
       }
-      console.debug(`No match for text ${text}`, payload);
+
+      console.debug('No match for message', payload);
     } catch (err) {
-      await this.reportError(err, { chatId, replyTo });
+      await this.reportError(err, { chatId, replyTo: payload.message?.message_id });
     }
   }
 }

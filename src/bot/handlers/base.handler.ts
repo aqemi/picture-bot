@@ -12,8 +12,7 @@ export abstract class TelegramUpdateHandler {
     protected readonly api: TelegramApi,
     protected readonly env: Env,
   ) {
-
-    const pattern = Object.values(env).join('|')
+    const pattern = Object.values(env).join('|');
     this.sanitizeExpr = new RegExp(pattern, 'g');
   }
 
@@ -54,6 +53,10 @@ export abstract class TelegramUpdateHandler {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  protected get botUsername(): string {
+    return `${this.env.BOT_USERNAME}_bot`;
   }
 }
 

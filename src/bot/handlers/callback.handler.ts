@@ -2,12 +2,13 @@ import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
 import { ResponseCallbackData, ResponseCallbackType, parse } from '../../utils/callback-data';
 import { mention } from '../../utils/mention';
-import { Context, GoogleImageSearch, PluginDerived, Tenor, Youtube } from '../plugins';
+import { InvocationContext, GoogleImageSearch, Tenor, Youtube } from '../plugins';
 import { TelegramUpdateHandler } from './base.handler';
+import { RegexBasedPluginDerived } from '../plugins/regex-based.plugin';
 
-const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor];
+const plugins: RegexBasedPluginDerived[] = [GoogleImageSearch, Youtube, Tenor];
 
-type CallbackContext = Context &
+type CallbackContext = InvocationContext &
   ResponseCallbackData & {
     /**
      * User who initiated callback
@@ -15,7 +16,6 @@ type CallbackContext = Context &
     initiatorId: number;
     callbackQueryId: string;
     chatId: number;
-    invokeMessageId: number;
   };
 
 export class TelegramCallbackHandler extends TelegramUpdateHandler {
@@ -24,18 +24,20 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
   }
 
   async handle(payload: TelegramUpdate) {
-    const chatId = defined(payload.callback_query?.message?.chat.id, 'chatId');
+    const chatId = defined(payload.callback_query?.message?.chat.id, 'callback_query.message.chat.id');
     try {
       const data = parse(payload.callback_query?.data ?? '');
       const ctx: CallbackContext = {
         ...data,
-        initiatorId: defined(payload.callback_query?.from.id, 'initiatorId'),
-        callbackQueryId: defined(payload.callback_query?.id, 'callbackQueryId'),
+        initiatorId: defined(payload.callback_query?.from.id, 'callback_query.from.id'),
+        callbackQueryId: defined(payload.callback_query?.id, 'callback_query.id'),
         chatId,
-        invokeMessageId: defined(payload.callback_query?.message?.message_id, 'invokeMessageId'),
-        query: defined(payload.callback_query?.message?.reply_to_message?.text, 'query'),
-        repliedMessageId: defined(payload.callback_query?.message?.reply_to_message?.message_id, 'repliedMessageId'),
-        caption: mention(defined(payload.callback_query?.from, 'from')),
+        messageId: defined(payload.callback_query?.message?.message_id, 'callback_query.message.message_id'),
+        replyToId: defined(payload.callback_query?.message?.reply_to_message?.message_id, 'callback_query.message.reply_to_message.message_id'),
+        caption: mention(defined(payload.callback_query?.from, 'callback_query.from')),
+        text: payload.callback_query?.message?.text ?? '',
+        replyToText: defined(payload.callback_query?.message?.reply_to_message?.text, 'callback_query.message.reply_to_message.text'),
+        replyToThisBot: false, // callback buttons are always on bot messages and bot does not reply to itself
       };
 
       switch (data.callback) {
@@ -48,7 +50,7 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
           break;
         }
         case ResponseCallbackType.More: {
-          await this.removeKeyboard(ctx.chatId, ctx.invokeMessageId);
+          await this.removeKeyboard(ctx.chatId, ctx.messageId);
           await this.loadMore(ctx);
           break;
         }
@@ -70,7 +72,7 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
       });
       return false;
     }
-    await this.api.deleteMessage({ chat_id: ctx.chatId, message_id: ctx.invokeMessageId });
+    await this.api.deleteMessage({ chat_id: ctx.chatId, message_id: ctx.messageId });
     return true;
   }
 
@@ -87,6 +89,6 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
     if (!Plugin) {
       throw new Error(`Unknown plugin ${plugin}`);
     }
-    return await new Plugin(ctx, this.api, this.env).processAndRespond({ resultNumber: defined(resultNumber) });
+    return await new Plugin(ctx, this.api, this.env).run({ resultNumber: defined(resultNumber) });
   }
 }

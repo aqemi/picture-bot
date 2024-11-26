@@ -1,8 +1,9 @@
-import { Plugin } from '../base.plugin';
+import { RegexBasedPlugin } from '../regex-based.plugin';
 
-export class Keyboard extends Plugin {
-  static matcher = /^амикей (даун)/iu;
-  public async processAndRespond(): Promise<void> {
+export class Keyboard extends RegexBasedPlugin {
+  protected regex = /^амикей (даун)/iu;
+
+  public async run(): Promise<void> {
     await this.api.sendMessage({
       chat_id: this.ctx.chatId,
       text: '+',

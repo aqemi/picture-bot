@@ -1,15 +1,16 @@
 import { throwOnFetchError } from '../../../utils';
-import { Plugin } from '../base.plugin';
+import { RegexBasedPlugin } from '../regex-based.plugin';
 import { Schema$Search } from './custom-search-api.interface';
 
 const ITEMS_PER_PAGE = 10;
 const MAX_RETRIES = 5;
 
-export class GoogleImageSearch extends Plugin {
-  static matcher = /^(?:пик|пикча|img|image|pic|picture)(?: (.+))?$/i;
-
+export class GoogleImageSearch extends RegexBasedPlugin {
   private retry = 0;
-  public async processAndRespond({ resultNumber }: { resultNumber: number }): Promise<void> {
+
+  protected regex = /^(?:пик|пикча|img|image|pic|picture)(?: (.+))?$/i;
+
+  public async run({ resultNumber = 0 }: { resultNumber: number }): Promise<void> {
     const start = Math.floor(resultNumber / ITEMS_PER_PAGE) * 10 + 1;
     const resultNumInChunk = resultNumber % ITEMS_PER_PAGE;
     const nextResultNum = resultNumber + 1;
@@ -17,7 +18,7 @@ export class GoogleImageSearch extends Plugin {
 
     const params = new URLSearchParams({
       searchType: 'image',
-      q: this.ctx.query,
+      q: this.query,
       key: this.env.GOOGLE_API_KEY,
       cx: this.env.CUSTOM_SEARCH_ENGINE_ID,
       num: ITEMS_PER_PAGE.toString(),
@@ -59,7 +60,7 @@ export class GoogleImageSearch extends Plugin {
         throw err;
       } else {
         console.log(`Retrying (${this.retry})`, err);
-        await this.processAndRespond({ resultNumber: nextResultNum });
+        await this.run({ resultNumber: nextResultNum });
       }
     }
   }
