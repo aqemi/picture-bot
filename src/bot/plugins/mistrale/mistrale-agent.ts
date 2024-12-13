@@ -35,13 +35,11 @@ type CompletionParams = {
 
 export class MistraleAgent {
   private readonly client: Mistral;
-  private readonly db: D1Database;
   constructor(private readonly env: Env) {
     this.client = new Mistral({
       apiKey: this.env.MISTRAL_API_KEY,
       serverURL: `https://gateway.ai.cloudflare.com/v1/${this.env.CF_ACCOUNT_ID}/${this.env.AI_GATEWAY_ID}/mistral`,
     });
-    this.db = this.env.DB;
   }
 
   public async completion({ query, chatId, username }: CompletionParams): Promise<AiResponse> {
@@ -63,7 +61,7 @@ export class MistraleAgent {
     } else {
       return {
         valid: false,
-        raw: content?.toString() ?? 'EMPTY',
+        raw: content?.toString() ?? 'null',
       };
     }
   }

@@ -187,7 +187,6 @@ describe('MistraleAgent', () => {
     await agent.completion({ query: 'test', chatId: 0, username: 'test' });
 
     const { results } = await env.DB.prepare('SELECT * FROM threads WHERE chatId = ?').bind(0).all();
-    console.log('🚀 ~ it ~ results:', results);
     expect(results).toHaveLength(2);
     expect(results).toContainEqual({
       chatId: 0,
