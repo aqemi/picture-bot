@@ -1,6 +1,5 @@
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
-import { type Env } from '../../env';
 import { ResponseCallbackType, stringify } from '../../utils/callback-data';
 import { type TelegramApi } from '../telegram-api';
 
@@ -10,6 +9,7 @@ export type InvocationContext = {
   replyToId?: number;
   caption?: string;
   initiatorId: number;
+  initiatorName: string;
   text: string;
   replyToText?: string;
   replyToThisBot: boolean;
@@ -22,7 +22,7 @@ export abstract class BasePlugin {
     protected readonly env: Env,
   ) {}
 
-  public abstract match(): boolean;
+  public abstract match(): boolean | Promise<boolean>;
   public abstract run(arg: object): Promise<void>;
 
   protected getKeyboard(resultNumber: number): InlineKeyboardMarkup {

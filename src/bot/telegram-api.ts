@@ -6,11 +6,13 @@ import type {
   StickerSet,
   EditMessageReplyMarkupOptions as TelegramEditMessageReplyMarkupOptions,
   SendAnimationOptions as TelegramSendAnimationOptions,
+  SendStickerOptions as TelegramSendStickerOptions,
   SendMessageOptions as TelegramSendMessageOptions,
   SendPhotoOptions as TelegramSendPhotoOptions,
   SetWebHookOptions as TelegramSetWebHookOptions,
   User,
   WebhookInfo,
+  Message,
 } from 'node-telegram-bot-api';
 import { FetchError, defined, throwOnFetchError } from '../utils';
 
@@ -33,6 +35,11 @@ interface SetWebHookOptions extends TelegramSetWebHookOptions {
 interface SendPhotoOptions extends TelegramSendPhotoOptions {
   chat_id: number;
   photo: string;
+}
+
+interface SendStickerOptions extends TelegramSendStickerOptions {
+  chat_id: number;
+  sticker: string;
 }
 
 interface SendAnimationOptions extends TelegramSendAnimationOptions {
@@ -97,6 +104,20 @@ interface GetFileBlobOptions {
   token: string;
 }
 
+type ReactionTypeEmoji = {
+  type: 'emoji';
+  emoji: string;
+};
+
+type ReactionType = ReactionTypeEmoji;
+
+interface SetMessageReactionOptions {
+  chat_id: number;
+  message_id: number;
+  reaction: ReactionType[];
+  is_big?: boolean;
+}
+
 export class TelegramApi {
   constructor(private readonly token: string) {}
   private async makeRequest<T = true>(method: string, payload: object): Promise<TelegramResponse<T>> {
@@ -121,7 +142,11 @@ export class TelegramApi {
   }
 
   public async sendMessage(options: SendMessageOptions) {
-    return this.makeRequest('sendMessage', options);
+    return this.makeRequest<Message>('sendMessage', options);
+  }
+
+  public async setMessageReaction(options: SetMessageReactionOptions) {
+    return this.makeRequest<Message>('setMessageReaction', options);
   }
 
   public async sendPhoto(options: SendPhotoOptions) {
@@ -171,6 +196,10 @@ export class TelegramApi {
 
   public async addStickerToSet(options: AddStickerToSetOptions) {
     return this.makeRequest('addStickerToSet', options);
+  }
+
+  public async sendSticker(options: SendStickerOptions) {
+    return this.makeRequest('sendSticker', options);
   }
 
   public async setStickerSetThumbnail(options: SetStickerSetThumbnailOptions) {

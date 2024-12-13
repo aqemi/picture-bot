@@ -1,5 +1,9 @@
 {
   "TG_TOKEN": "https://core.telegram.org/bots/features#botfather",
   "GOOGLE_API_KEY": "https://support.google.com/googleapi/answer/6158862?hl=en",
-  "CUSTOM_SEARCH_ENGINE_ID": "https://support.google.com/programmable-search/answer/12499034?hl=en"
+  "CUSTOM_SEARCH_ENGINE_ID": "https://support.google.com/programmable-search/answer/12499034?hl=en",
+  "BOT_USERNAME": "https://core.telegram.org/bots/features#botfather",
+  "MISTRAL_API_KEY": "https://docs.mistral.ai/getting-started/quickstart/",
+  "CF_ACCOUNT_ID": "https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/#find-account-id-workers-and-pages",
+  "AI_GATEWAY_ID": "https://developers.cloudflare.com/ai-gateway/get-started/"
 }

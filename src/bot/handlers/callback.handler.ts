@@ -30,6 +30,7 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
       const ctx: CallbackContext = {
         ...data,
         initiatorId: defined(payload.callback_query?.from.id, 'callback_query.from.id'),
+        initiatorName: defined(payload.callback_query?.from.first_name, 'callback_query.from.first_name'),
         callbackQueryId: defined(payload.callback_query?.id, 'callback_query.id'),
         chatId,
         messageId: defined(payload.callback_query?.message?.message_id, 'callback_query.message.message_id'),

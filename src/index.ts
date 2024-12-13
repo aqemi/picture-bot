@@ -8,7 +8,6 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { Env } from './env';
 import { onTelegramUpdate, info, install, ok } from './routes';
 import { botEndpoint } from './utils/bot-endpoint';
 

@@ -174,3 +174,4 @@ cloudflared.exe
 
 .wrangler
 prod.vars.json
+.deployment

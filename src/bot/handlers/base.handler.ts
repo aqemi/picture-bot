@@ -1,5 +1,4 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
-import type { Env } from '../../env';
 import type { TelegramApi } from '../telegram-api';
 
 type ReportErrorOptions = {
@@ -12,7 +11,9 @@ export abstract class TelegramUpdateHandler {
     protected readonly api: TelegramApi,
     protected readonly env: Env,
   ) {
-    const pattern = Object.values(env).join('|');
+    const pattern = Object.values(env)
+      .filter((x) => typeof x === 'string')
+      .join('|');
     this.sanitizeExpr = new RegExp(pattern, 'g');
   }
 

@@ -1,4 +1,3 @@
-import { Env } from '../../env';
 import { TelegramApi } from '../telegram-api';
 import { BasePlugin, InvocationContext } from './base.plugin';
 

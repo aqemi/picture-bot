@@ -6,7 +6,6 @@ import {
   TelegramTextHandler,
   TelegramUpdateHandlerDerived,
 } from '../bot/handlers';
-import { Env } from '../env';
 import { TelegramApi } from '../bot/telegram-api';
 
 const handlers: TelegramUpdateHandlerDerived[] = [
