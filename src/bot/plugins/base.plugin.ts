@@ -31,12 +31,12 @@ export abstract class BasePlugin {
         [
           {
             text: 'del',
-            callback_data: stringify({ callback: ResponseCallbackType.Delete, ownerId: this.ctx.initiatorId }),
+            callback_data: stringify({ type: ResponseCallbackType.Delete, ownerId: this.ctx.initiatorId }),
           },
           {
             text: 're:',
             callback_data: stringify({
-              callback: ResponseCallbackType.Retry,
+              type: ResponseCallbackType.Retry,
               plugin: this.constructor.name,
               resultNumber,
               ownerId: this.ctx.initiatorId,
@@ -45,7 +45,7 @@ export abstract class BasePlugin {
           {
             text: 'moar!',
             callback_data: stringify({
-              callback: ResponseCallbackType.More,
+              type: ResponseCallbackType.More,
               plugin: this.constructor.name,
               resultNumber,
               ownerId: this.ctx.initiatorId,

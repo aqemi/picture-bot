@@ -5,7 +5,7 @@ const { readFileSync } = require('node:fs');
     const deployment = readFileSync('.deployment', 'utf-8');
     const [url] = deployment.match(/https?:\/\/[a-zA-Z0-9-./]+/) ?? [];
     if (!url) {
-      throw new Error('Deployment ulr not found');
+      throw new Error('Deployment url not found');
     }
     
     const response = await fetch(`${url}/install`);

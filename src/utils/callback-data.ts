@@ -5,15 +5,18 @@ export enum ResponseCallbackType {
 }
 
 export class ResponseCallbackData {
-  callback!: ResponseCallbackType;
-  plugin?: string;
-  resultNumber?: number;
-  ownerId!: number;
+  constructor(
+    public type: ResponseCallbackType,
+    public ownerId: number,
+    public plugin?: string,
+    public resultNumber?: number,
+  ) {}
 }
 
 type MinifiedResponseCallbackData = Record<number, number>;
 
-const minifiedKeysDict = Object.keys(new ResponseCallbackData()).reduce(
+const dummyData = new ResponseCallbackData(0, 0);
+const minifiedKeysDict = Object.keys(dummyData).reduce(
   (dict, original, index) => ({ ...dict, [original]: index }),
   {} as Record<string, number>,
 );

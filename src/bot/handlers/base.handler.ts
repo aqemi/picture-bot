@@ -59,6 +59,10 @@ export abstract class TelegramUpdateHandler {
   protected get botUsername(): string {
     return `${this.env.BOT_USERNAME}_bot`;
   }
+
+  protected get botMention(): string {
+    return `@${this.botUsername}`;
+  }
 }
 
 export type TelegramUpdateHandlerDerived = {

@@ -2,6 +2,7 @@ import type { Sticker, Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
 import { InputSticker } from '../telegram-api';
 import { TelegramUpdateHandler } from './base.handler';
+import { getRandomDigit } from '../../utils/random';
 
 export class CopyStickerPackHandler extends TelegramUpdateHandler {
   protected readonly MAX_INITIAL_STICKERS = 50;
@@ -60,10 +61,7 @@ export class CopyStickerPackHandler extends TelegramUpdateHandler {
   }
 
   protected async getCopyName(originalName: string): Promise<string> {
-    const {
-      result: { username: botUsername },
-    } = await this.api.getMe();
-    return `${originalName}_by_${botUsername}`;
+    return `${originalName}${getRandomDigit()}`;
   }
 
   private getCopyTitle(originalTitle: string): string {
