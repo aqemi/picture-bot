@@ -61,7 +61,16 @@ export class CopyStickerPackHandler extends TelegramUpdateHandler {
   }
 
   protected async getCopyName(originalName: string): Promise<string> {
-    return `${originalName}${getRandomDigit()}`;
+    const {
+      result: { username: botUsername },
+    } = await this.api.getMe();
+    const suffix = `_by_${botUsername}`;
+
+    if (originalName.endsWith(suffix)) {
+      return `${originalName.replace(suffix, '')}${getRandomDigit()}${suffix}`;
+    }
+
+    return `${originalName}${suffix}`;
   }
 
   private getCopyTitle(originalTitle: string): string {

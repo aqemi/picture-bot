@@ -1,5 +1,5 @@
 export const config = {
-  stickerSetsNames: ['kurumi_nyaa', 'sewergifs_by_fStikBot', 'nyaa1488', 'zs_video'],
+  stickerSetsNames: ['sewergifs_by_fStikBot', 'zs_video'],
   /**
    * https://www.sqlite.org/lang_datefunc.html
    */
