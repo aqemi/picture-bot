@@ -1,5 +1,5 @@
 const { spawn } = require('node:child_process');
-const { tunnel, install, bin } = require('cloudflared');
+const { install, bin, Tunnel } = require('cloudflared');
 const wait = require('wait-on');
 
 (async function () {
@@ -8,18 +8,18 @@ const wait = require('wait-on');
     await install(bin);
     spawn(bin, ['--version'], { stdio: 'inherit', shell: true });
     await wait({ resources: ['http://localhost:8787'], timeout: 10_000 });
-    const { url, connections, child, stop } = tunnel({ '--url': 'localhost:8787' });
 
+    const tunnel = Tunnel.quick('localhost:8787');
+    const url = new Promise((resolve) => tunnel.once('url', resolve));
+    
     // show the url
     const link = await url;
     console.info('LINK:', link);
     // wait for the all 4 connections to be established
-    const conns = await Promise.all(connections);
+    const conn = new Promise((resolve) => tunnel.once('connected', resolve));
+    console.info('CONN:', await conn);
 
-    // show the connections
-    console.log('Connections Ready!', conns);
-
-    child.on('exit', (code) => {
+    tunnel.on('exit', (code) => {
       console.log('tunnel process exited with code', code);
     });
 

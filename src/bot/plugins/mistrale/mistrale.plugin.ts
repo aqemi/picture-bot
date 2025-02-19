@@ -7,6 +7,7 @@ import { Tenor } from '../tenor/tenor.plugin';
 import { Youtube } from '../youtube/youtube.plugin';
 import { config } from './config';
 import { MistraleAgent } from './mistrale-agent';
+import { getStickerSets } from '../../../utils/sticketsets';
 
 const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor];
 
@@ -52,13 +53,10 @@ export class MistralePlugin extends BasePlugin {
 
     if (response.sticker) {
       const sticker = await this.getSticker(response.sticker);
-      if (!sticker) {
-        console.debug(`Invalid sticker ${response.sticker}`);
-        if (!response.text) {
-          await this.sendText(response.sticker);
-        }
+      if (sticker) {
+        await this.sendSticker(sticker.file_id);
       } else {
-        await this.sendSticker(response.sticker);
+        await this.sendText(response.sticker);
       }
     }
   }
@@ -81,19 +79,18 @@ export class MistralePlugin extends BasePlugin {
     await this.api.sendMessage({
       chat_id: this.ctx.chatId,
       reply_to_message_id: this.ctx.messageId,
-      text: `\`\`\`json${raw}\`\`\``,
+      parse_mode: 'MarkdownV2',
+      text: `\`\`\`json\n${raw}\n\`\`\``,
     });
   }
 
   private async sendSticker(fileId: string) {
-    await this.api.sendSticker({
-      chat_id: this.ctx.chatId,
-      sticker: fileId,
-    });
+    console.log('🚀 ~ MistralePlugin ~ sendSticker ~ fileId:', fileId);
+    await this.api.sendSticker({ chat_id: this.ctx.chatId, sticker: fileId });
   }
 
   private async getSticker(emoji: string): Promise<Sticker | null> {
-    const stickerpacks = await Promise.all(config.stickerSetsNames.map((name) => this.api.getStickerSet({ name })));
+    const stickerpacks = await Promise.all(getStickerSets(this.env).map((name) => this.api.getStickerSet({ name })));
     const stickers = await Promise.all(stickerpacks.flatMap((x) => x.result.stickers));
     const matchedStickers = stickers.filter((x) => x.emoji === emoji);
     if (!matchedStickers.length) {

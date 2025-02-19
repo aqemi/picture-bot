@@ -13,9 +13,11 @@ export class FetchError extends Error {
 
 export async function throwOnFetchError(res: Response) {
   if (!res.ok) {
-    const message = await res.text();
-    throw new FetchError(`${res.url} - ${res.statusText}: ${message}`, {
-      code: res.status,
-    });
+    let message = await res.text();
+    try {
+      const obj = JSON.parse(message);
+      message = JSON.stringify(obj, null, 4);
+    } catch (ignore) {}
+    throw new FetchError(`${res.statusText}\n ${res.url}\n${message}`, { code: res.status });
   }
 }

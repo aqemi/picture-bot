@@ -1,6 +1,6 @@
-import { config } from '../bot/plugins/mistrale/config';
 import { TelegramApi } from '../bot/telegram-api';
 import { botEndpoint } from '../utils';
+import { getStickerSets } from '../utils/sticketsets';
 
 async function registerTelegramWebhook(api: TelegramApi, env: Env, host: string) {
   return await api.setWebhook({
@@ -10,8 +10,8 @@ async function registerTelegramWebhook(api: TelegramApi, env: Env, host: string)
   });
 }
 
-async function getStickerPackPrompt(api: TelegramApi): Promise<string> {
-  const stickerpacks = await Promise.all(config.stickerSetsNames.map((name) => api.getStickerSet({ name })));
+async function getStickerPackPrompt(api: TelegramApi, env: Env): Promise<string> {
+  const stickerpacks = await Promise.all(getStickerSets(env).map((name) => api.getStickerSet({ name })));
   const packPrompts = stickerpacks.map(
     ({ result: pack }) => `${pack.title} (${pack.name})\n${pack.stickers.map((s) => s.emoji).join()}`,
   );
@@ -32,14 +32,10 @@ export async function install(req: Request, env: Env): Promise<Response> {
   const api = new TelegramApi(env.TG_TOKEN);
   const setWebhookResponse = await registerTelegramWebhook(api, env, host);
 
-  const stickerPrompt = await getStickerPackPrompt(api);
+  const stickerPrompt = await getStickerPackPrompt(api, env);
   await updateStickerPrompt(stickerPrompt, env);
 
   return new Response(
-    JSON.stringify({
-      setWebhook: setWebhookResponse,
-      getWebhookInfo: await api.getWebhookInfo(),
-      stickerPrompt,
-    }),
+    JSON.stringify({ setWebhook: setWebhookResponse, getWebhookInfo: await api.getWebhookInfo(), stickerPrompt }),
   );
 }

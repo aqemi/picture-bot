@@ -127,11 +127,11 @@ export class TelegramApi {
   }
 
   public async sendMessage(options: SendMessageOptions) {
-    return this.makeRequest<Message>('sendMessage', options);
+    return this.makeRequest<Telegram.Message>('sendMessage', options);
   }
 
   public async setMessageReaction(options: SetMessageReactionOptions) {
-    return this.makeRequest<Message>('setMessageReaction', options);
+    return this.makeRequest<Telegram.Message>('setMessageReaction', options);
   }
 
   public async sendPhoto(options: SendPhotoOptions) {

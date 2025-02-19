@@ -10,5 +10,6 @@ interface Env {
 	AI_GATEWAY_ID: string;
 	NODE_ENV: string;
 	MISTRAL_AGENT_ID: string;
+	STICKER_SETS: string;
 	DB: D1Database;
 }
