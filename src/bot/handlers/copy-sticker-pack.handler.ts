@@ -37,7 +37,7 @@ export class CopyStickerPackHandler extends TelegramUpdateHandler {
           text: `${this.MAX_INITIAL_STICKERS} out of ${stickerSet.stickers.length} imported. Press continue.`,
           reply_to_message_id: messageId,
           reply_markup: {
-            inline_keyboard: [[{ text: 'Continue', callback_data: 'true' }]],
+            inline_keyboard: [[{ text: 'Continue', callback_data: stickerSetCopyName }]],
           },
         });
       } else {

@@ -20,6 +20,7 @@ export class CopyStickerPackContinueHandler extends CopyStickerPackHandler {
         payload.callback_query?.message?.reply_to_message?.sticker?.set_name,
         'reply_to_message?.sticker?.set_name',
       );
+      const stickerSetCopyName = defined(payload.callback_query?.data, 'payload.callback_query?.data');
       const userId = defined(payload.callback_query?.message?.reply_to_message?.from?.id, 'reply_to_message?.from?.id');
       const repliedMessageId = defined(
         payload.callback_query?.message?.reply_to_message?.message_id,
@@ -27,7 +28,6 @@ export class CopyStickerPackContinueHandler extends CopyStickerPackHandler {
       );
 
       const { result: originalStickerSet } = await this.api.getStickerSet({ name: originalStickerSetName });
-      const stickerSetCopyName = await this.getCopyName(originalStickerSetName);
       const { result: stickerSetCopy } = await this.api.getStickerSet({ name: stickerSetCopyName });
 
       if (originalStickerSet.thumb && !stickerSetCopy.thumb) {
