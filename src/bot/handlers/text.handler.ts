@@ -5,14 +5,7 @@ import { MistralePlugin } from '../plugins/mistrale/mistrale.plugin';
 import { RestartPromptPlugin } from '../plugins/mistrale/restart.plugin';
 import { TelegramUpdateHandler } from './base.handler';
 
-const plugins: PluginDerived[] = [
-  GoogleImageSearch,
-  Youtube,
-  Tenor,
-  Keyboard,
-  RestartPromptPlugin,
-  MistralePlugin,
-];
+const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor, Keyboard, RestartPromptPlugin, MistralePlugin];
 
 export class TelegramTextHandler extends TelegramUpdateHandler {
   match(payload: TelegramUpdate) {
@@ -20,17 +13,19 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
   }
 
   async handle(payload: TelegramUpdate) {
-    const chatId = defined(payload.message?.chat.id, 'chatId');
+    const { message } = payload;
+    const chatId = defined(message?.chat.id, 'chatId');
     try {
       const ctx: InvocationContext = {
         chatId,
-        messageId: defined(payload.message?.message_id, 'message.message_id'),
-        replyToId: payload.message?.reply_to_message?.message_id,
-        initiatorId: defined(payload.message?.from?.id, 'message.from.id'),
-        initiatorName: defined(payload.message?.from?.username ?? payload.message?.from?.first_name, 'message?.from?.first_name'),
-        text: defined(payload.message?.text, 'message.text'),
-        replyToText: payload.message?.reply_to_message?.text,
-        replyToThisBot: payload.message?.reply_to_message?.from?.username === this.botUsername,
+        messageId: defined(message?.message_id, 'message.message_id'),
+        replyToId: message?.reply_to_message?.message_id,
+        initiatorId: defined(message?.from?.id, 'message.from.id'),
+        initiatorName: defined(message?.from?.username ?? message?.from?.first_name, 'message?.from?.first_name'),
+        text: defined(message?.text, 'message.text'),
+        replyToText: message?.reply_to_message?.text,
+        replyToThisBot: message?.reply_to_message?.from?.username === this.botUsername,
+        isPrivate: message?.chat.type === 'private',
       };
 
       for (const Plugin of plugins) {
@@ -42,7 +37,10 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
 
       console.debug('No match for message', payload);
     } catch (err) {
-      await this.reportError(err, { chatId, replyTo: payload.message?.message_id });
+      await this.reportError(err, {
+        chatId,
+        replyTo: message?.message_id,
+      });
     }
   }
 }

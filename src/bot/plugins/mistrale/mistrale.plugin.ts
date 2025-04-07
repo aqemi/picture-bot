@@ -1,5 +1,6 @@
 import { Sticker } from 'node-telegram-bot-api';
 import { defined } from '../../../utils';
+import { getStickerSets } from '../../../utils/sticketsets';
 import { TelegramApi } from '../../telegram-api';
 import { BasePlugin, InvocationContext, PluginDerived } from '../base.plugin';
 import { GoogleImageSearch } from '../google-image-search/google-image-search.plugin';
@@ -7,7 +8,6 @@ import { Tenor } from '../tenor/tenor.plugin';
 import { Youtube } from '../youtube/youtube.plugin';
 import { config } from './config';
 import { MistraleAgent } from './mistrale-agent';
-import { getStickerSets } from '../../../utils/sticketsets';
 
 const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor];
 
@@ -68,11 +68,17 @@ export class MistralePlugin extends BasePlugin {
       text,
     });
 
-    await this.postProcessMessage(
-      defined(sent.text, 'sent.text'),
-      sent.message_id,
-      defined(sent.from?.id, 'sent.from?.id'),
-    );
+    await this.postProcessMessage({
+      text: defined(sent.text, 'sent.text'),
+      chatId: this.ctx.chatId,
+      messageId: sent.message_id,
+      replyToId: sent.message_id,
+      businessConnectionId: this.ctx.businessConnectionId,
+      initiatorId: defined(sent.from?.id, 'sent.from?.id'),
+      initiatorName: defined(sent.from?.username),
+      replyToThisBot: false,
+      isPrivate: this.ctx.isPrivate,
+    });
   }
 
   private async sendRaw(raw: string) {
@@ -101,26 +107,24 @@ export class MistralePlugin extends BasePlugin {
   }
 
   private async isActive(): Promise<boolean> {
-    const result = await this.env.DB.prepare(
-      `SELECT COUNT(*) AS count FROM threads WHERE createdAt > DATETIME(CURRENT_TIMESTAMP, '${config.allReplyCooldown}') AND chatId = ?`,
-    )
-      .bind(this.ctx.chatId)
-      .first<{ count: number }>();
+    try {
+      const result = await this.env.DB.prepare(
+        `SELECT COUNT(*) AS count FROM threads WHERE createdAt > DATETIME(CURRENT_TIMESTAMP, '${config.allReplyCooldown}') AND chatId = ?`,
+      )
+        .bind(this.ctx.chatId)
+        .first<{ count: number }>();
 
-    return !!result && result.count > 0;
+      return !!result && result.count > 0;
+    } catch (error) {
+      if (this.ctx.isPrivate) {
+        throw error; // display error to user
+      }
+      console.error('Error on thread activity check', error);
+      return false;
+    }
   }
 
-  private async postProcessMessage(text: string, messageId: number, initiatorId: number) {
-    const ctx: InvocationContext = {
-      chatId: this.ctx.chatId,
-      messageId,
-      replyToId: messageId,
-      initiatorId,
-      initiatorName: 'ohime',
-      text,
-      replyToThisBot: false,
-    };
-
+  private async postProcessMessage(ctx: InvocationContext) {
     for (const Plugin of plugins) {
       const plugin = new Plugin(ctx, this.api, this.env);
       if (await plugin.match()) {

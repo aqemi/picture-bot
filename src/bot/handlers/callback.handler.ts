@@ -18,31 +18,33 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
   }
 
   async handle(payload: TelegramUpdate) {
-    const chatId = defined(payload.callback_query?.message?.chat.id, 'callback_query.message.chat.id');
+    const { callback_query } = payload;
+    const chatId = defined(callback_query?.message?.chat.id, 'callback_query.message.chat.id');
     try {
-      const data = parse(payload.callback_query?.data ?? '');
+      const data = parse(callback_query?.data ?? '');
 
       const callback: Callback = {
         ...data,
-        queryId: defined(payload.callback_query?.id, 'payload.callback_query?.id'),
+        queryId: defined(callback_query?.id, 'callback_query?.id'),
       };
 
       const ctx: InvocationContext = {
-        initiatorId: defined(payload.callback_query?.from.id, 'callback_query.from.id'),
-        initiatorName: defined(payload.callback_query?.from.first_name, 'callback_query.from.first_name'),
+        initiatorId: defined(callback_query?.from.id, 'callback_query.from.id'),
+        initiatorName: defined(callback_query?.from.first_name, 'callback_query.from.first_name'),
         chatId,
-        messageId: defined(payload.callback_query?.message?.message_id, 'callback_query.message.message_id'),
+        messageId: defined(callback_query?.message?.message_id, 'callback_query.message.message_id'),
         replyToId: defined(
-          payload.callback_query?.message?.reply_to_message?.message_id,
+          callback_query?.message?.reply_to_message?.message_id,
           'callback_query.message.reply_to_message.message_id',
         ),
-        caption: mention(defined(payload.callback_query?.from, 'callback_query.from')),
-        text: payload.callback_query?.message?.text ?? '',
+        caption: mention(defined(callback_query?.from, 'callback_query.from')),
+        text: callback_query?.message?.text ?? '',
         replyToText: defined(
-          payload.callback_query?.message?.reply_to_message?.text,
+          callback_query?.message?.reply_to_message?.text,
           'callback_query.message.reply_to_message.text',
         ),
         replyToThisBot: false, // callback buttons are always on bot messages and bot does not reply to itself
+        isPrivate: callback_query?.message?.chat.type === 'private',
       };
 
       switch (callback.type) {
@@ -72,8 +74,8 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
     if (ctx.initiatorId !== callback.ownerId) {
       await this.api.answerCallbackQuery({
         callback_query_id: callback.queryId,
-        text: '',
-        show_alert: true,
+        text: 'Не твой ответ, не трогай',
+        show_alert: false,
       });
       return false;
     }

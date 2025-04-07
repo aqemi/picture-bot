@@ -24,13 +24,18 @@ export abstract class TelegramUpdateHandler {
 
   protected async reportError(err: unknown, { chatId, replyTo }: ReportErrorOptions): Promise<void> {
     console.error(err);
+
     const typedError = this.ensureError(err);
     if (typedError instanceof FetchError) {
       typedError.url = this.sanitize(typedError.url);
     }
     delete typedError.stack;
     const decoratedError = decorateError(typedError);
-    await this.api.sendJSON({ chat_id: chatId, json: decoratedError, reply_to_message_id: replyTo });
+    await this.api.sendJSON({
+      chat_id: chatId,
+      json: decoratedError,
+      reply_to_message_id: replyTo,
+    });
   }
 
   private ensureError(err: unknown): Error {
