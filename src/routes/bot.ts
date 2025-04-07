@@ -5,10 +5,12 @@ import {
   TelegramCallbackHandler,
   TelegramTextHandler,
   TelegramUpdateHandlerDerived,
+  TestHandler,
 } from '../bot/handlers';
 import { TelegramApi } from '../bot/telegram-api';
 
 const handlers: TelegramUpdateHandlerDerived[] = [
+  TestHandler,
   TelegramTextHandler,
   TelegramCallbackHandler,
   CopyStickerPackHandler,

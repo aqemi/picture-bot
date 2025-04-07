@@ -1,6 +1,6 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
-import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, Test, Youtube } from '../plugins';
+import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, Youtube } from '../plugins';
 import { MistralePlugin } from '../plugins/mistrale/mistrale.plugin';
 import { RestartPromptPlugin } from '../plugins/mistrale/restart.plugin';
 import { TelegramUpdateHandler } from './base.handler';
@@ -10,7 +10,6 @@ const plugins: PluginDerived[] = [
   Youtube,
   Tenor,
   Keyboard,
-  Test,
   RestartPromptPlugin,
   MistralePlugin,
 ];

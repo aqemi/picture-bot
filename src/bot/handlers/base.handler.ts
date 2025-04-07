@@ -1,10 +1,9 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import type { TelegramApi } from '../telegram-api';
+import { FetchError } from '../../utils';
+import { decorateError } from '../../utils/decorate-error';
 
-type ReportErrorOptions = {
-  chatId: number;
-  replyTo?: number;
-};
+type ReportErrorOptions = { chatId: number; replyTo?: number };
 
 export abstract class TelegramUpdateHandler {
   constructor(
@@ -26,14 +25,12 @@ export abstract class TelegramUpdateHandler {
   protected async reportError(err: unknown, { chatId, replyTo }: ReportErrorOptions): Promise<void> {
     console.error(err);
     const typedError = this.ensureError(err);
-    typedError.message = this.sanitize(typedError.message);
-    await this.api.sendMessage({
-      chat_id: chatId,
-      text: `\`\`\`${typedError}\`\`\``,
-      reply_to_message_id: replyTo,
-      parse_mode: 'MarkdownV2',
-      disable_notification: true,
-    });
+    if (typedError instanceof FetchError) {
+      typedError.url = this.sanitize(typedError.url);
+    }
+    delete typedError.stack;
+    const decoratedError = decorateError(typedError);
+    await this.api.sendJSON({ chat_id: chatId, json: decoratedError, reply_to_message_id: replyTo });
   }
 
   private ensureError(err: unknown): Error {
@@ -41,7 +38,7 @@ export abstract class TelegramUpdateHandler {
   }
 
   private sanitize(text: string): string {
-    return text.replace(this.sanitizeExpr, '****');
+    return text.replace(this.sanitizeExpr, '<REDACTED>');
   }
 
   protected async removeKeyboard(chatId: number, messageId: number) {
