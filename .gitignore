@@ -171,7 +171,5 @@ dist
 .dev.vars
 .prod.vars
 
-cloudflared.exe
-
-.wrangler
+.wrangler/
 .deployment
