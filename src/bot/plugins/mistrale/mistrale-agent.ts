@@ -16,7 +16,7 @@ type ThreadMessage = {
   content: string;
 };
 
-type PromptTraits = {
+type ConversationTraits = {
   aggressive: boolean;
 };
 
@@ -45,8 +45,9 @@ export class MistraleAgent {
   public async completion({ query, chatId, username }: CompletionParams): Promise<AiResponse> {
     const formettedQuery = `[USERNAME]${username}[/USERNAME]: ${query}`;
     await this.appendThread({ chatId, content: formettedQuery, role: 'user' });
-    const prompt = await this.getPrompt({ aggressive: true });
     const thread = await this.getThread(chatId);
+    // const traits = await this.classifyThread(thread.slice(-1));
+    const prompt = await this.getPrompt({ aggressive: true });
     const { choices } = await this.client.agents.complete({
       agentId: this.env.MISTRAL_AGENT_ID,
       messages: [...prompt, ...thread],
@@ -66,7 +67,26 @@ export class MistraleAgent {
     }
   }
 
-  private async getPrompt(traits: PromptTraits): Promise<Thread> {
+  private async classifyThread(thread: Thread): Promise<ConversationTraits> {
+    try {
+      const { results } = await this.client.classifiers.moderateChat({
+        inputs: thread,
+        model: 'mistral-moderation-latest',
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const aggressive = Object.values(results?.[0].categoryScores ?? {}).some((x) => x > 0.1);
+
+      return { aggressive };
+    } catch (error: any) {
+      if (error.status !== 429) {
+        console.error('Error on classification request', error);
+      }
+      return { aggressive: false };
+    }
+  }
+
+  private async getPrompt(traits: ConversationTraits): Promise<Thread> {
     const { results } = await this.env.DB.prepare(`SELECT * FROM prompts`).run<{
       id: string | null;
       role: string;

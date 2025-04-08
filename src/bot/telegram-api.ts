@@ -9,11 +9,12 @@ type TelegramResponse<T> = {
 };
 
 type SendMessageOptions = Telegram.SendMessageOptions & {
+  business_connection_id?: string;
   chat_id: number;
   text: string;
 };
 
-type SendJsonOptions = Pick<SendMessageOptions, 'chat_id' | 'reply_to_message_id'> & {
+type SendJsonOptions = Pick<SendMessageOptions, 'chat_id' | 'reply_to_message_id' | 'business_connection_id'> & {
   json: object;
 };
 type SetWebHookOptions = Telegram.SetWebHookOptions & {
@@ -28,6 +29,7 @@ type SendPhotoOptions = Telegram.SendPhotoOptions & {
 type SendStickerOptions = Telegram.SendStickerOptions & {
   chat_id: number;
   sticker: string;
+  business_connection_id?: string;
 };
 
 type SendAnimationOptions = Telegram.SendAnimationOptions & {

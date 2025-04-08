@@ -7,6 +7,7 @@ import {
   TelegramUpdateHandlerDerived,
   TestHandler,
   AiHandler,
+  BusinessChatHandler,
 } from '../bot/handlers';
 import { TelegramApi } from '../bot/telegram-api';
 
@@ -17,6 +18,7 @@ const handlers: TelegramUpdateHandlerDerived[] = [
   TelegramCallbackHandler,
   CopyStickerPackHandler,
   CopyStickerPackContinueHandler,
+  BusinessChatHandler,
 ];
 
 export async function onTelegramUpdate(request: Request, env: Env): Promise<Response> {

@@ -12,8 +12,7 @@ export type InvocationContext = {
   initiatorName: string;
   text: string;
   replyToText?: string;
-  replyToThisBot: boolean;
-  isPrivate: boolean;
+  businessConnectionId?: string;
 };
 
 export abstract class BasePlugin {
