@@ -33,3 +33,11 @@ CREATE TABLE
     role TEXT CHECK (role IN ('user', 'assistant', 'system')) NOT NULL,
     content TEXT NOT NULL
   );
+
+DROP TABLE IF EXISTS gifs;
+CREATE TABLE
+  gifs (
+    id INTEGER PRIMARY KEY,
+    file_id TEXT NOT NULL,
+    description TEXT NOT NULL
+  );

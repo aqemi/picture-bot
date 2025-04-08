@@ -110,6 +110,12 @@ export class AiHandler extends TelegramUpdateHandler {
         await this.sendText(response.sticker);
       }
     }
+    if (response.gif) {
+      const gif = await this.getGif(response.gif);
+      if (gif) {
+        await this.sendGif(gif);
+      }
+    }
   }
 
   private async sendText(text: string): Promise<void> {
@@ -155,6 +161,14 @@ export class AiHandler extends TelegramUpdateHandler {
     });
   }
 
+  private async sendGif(fileId: string) {
+    await this.api.sendAnimation({
+      chat_id: this.ctx.chatId,
+      animation: fileId,
+      business_connection_id: this.ctx.businessConnectionId,
+    });
+  }
+
   private async getSticker(emoji: string): Promise<Sticker | null> {
     const stickersets = await Promise.all(getStickerSets(this.env).map((name) => this.api.getStickerSet({ name })));
     const stickers = await Promise.all(stickersets.flatMap((x) => x.result.stickers));
@@ -164,6 +178,13 @@ export class AiHandler extends TelegramUpdateHandler {
     }
     const randomIndex = Math.floor(Math.random() * matchedStickers.length);
     return matchedStickers[randomIndex];
+  }
+
+  private async getGif(id: number | string): Promise<string | undefined> {
+    const gif = await this.env.DB.prepare('SELECT file_id FROM gifs WHERE id = ?')
+      .bind(id)
+      .first<{ file_id: string }>();
+    return gif?.file_id;
   }
 
   private async isActive(): Promise<boolean> {

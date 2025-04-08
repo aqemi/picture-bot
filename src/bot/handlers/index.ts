@@ -5,4 +5,5 @@ export * from './copy-sticker-pack-continue.handler';
 export * from './test.handler';
 export * from './ai.handler';
 export * from './business.handler';
+export * from './storegif.handler';
 export type { TelegramUpdateHandlerDerived } from './base.handler';

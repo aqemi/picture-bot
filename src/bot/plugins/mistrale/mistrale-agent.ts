@@ -5,6 +5,7 @@ import { config } from './config';
 type AiResponse = {
   text?: string;
   sticker?: string;
+  gif?: string | number;
   valid: boolean;
   raw: string;
 };
@@ -46,7 +47,6 @@ export class MistraleAgent {
     const formettedQuery = `[USERNAME]${username}[/USERNAME]: ${query}`;
     await this.appendThread({ chatId, content: formettedQuery, role: 'user' });
     const thread = await this.getThread(chatId);
-    // const traits = await this.classifyThread(thread.slice(-1));
     const prompt = await this.getPrompt({ aggressive: true });
     const { choices } = await this.client.agents.complete({
       agentId: this.env.MISTRAL_AGENT_ID,
@@ -65,6 +65,26 @@ export class MistraleAgent {
         raw: content?.toString() ?? 'null',
       };
     }
+  }
+
+  public async classifyImage(imageUrl: string): Promise<string> {
+    const response = await this.client.chat.complete({
+      model: 'pixtral-12b',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Short list of tags to describe this ticker for future usage in prompt.' },
+            {
+              type: 'image_url',
+              imageUrl,
+            },
+          ],
+        },
+      ],
+    });
+    const { content } = response.choices?.[0].message ?? {};
+    return typeof content === 'string' ? content : '';
   }
 
   private async classifyThread(thread: Thread): Promise<ConversationTraits> {
@@ -129,7 +149,13 @@ export class MistraleAgent {
     if ('sticker' in response && (typeof response.sticker !== 'string' || !response.sticker)) {
       return false;
     }
-    if (!response.text && !response.sticker) {
+    if (
+      'gif' in response &&
+      ((typeof response.gif !== 'string' && typeof response.gif !== 'number') || !response.gif)
+    ) {
+      return false;
+    }
+    if (!response.text && !response.sticker && !response.gif) {
       return false;
     }
     return true;

@@ -33,6 +33,7 @@ type SendStickerOptions = Telegram.SendStickerOptions & {
 };
 
 type SendAnimationOptions = Telegram.SendAnimationOptions & {
+  business_connection_id?: string;
   chat_id: number;
   animation: string;
 };
