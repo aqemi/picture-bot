@@ -18,7 +18,7 @@ export abstract class TelegramUpdateHandler {
 
   private sanitizeExpr: RegExp;
 
-  public abstract match(payload: TelegramUpdate): boolean;
+  public abstract match(payload: TelegramUpdate): Promise<boolean>;
 
   public abstract handle(payload: TelegramUpdate): Promise<void>;
 

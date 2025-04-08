@@ -11,7 +11,7 @@ const wait = require('wait-on');
 
     const tunnel = Tunnel.quick('localhost:8787');
     const url = new Promise((resolve) => tunnel.once('url', resolve));
-    
+
     // show the url
     const link = await url;
     console.info('LINK:', link);
@@ -25,7 +25,7 @@ const wait = require('wait-on');
 
     process.on('SIGINT', function () {
       console.info('Ctrl-C...');
-      stop();
+      tunnel.stop();
       process.exit(0);
     });
 

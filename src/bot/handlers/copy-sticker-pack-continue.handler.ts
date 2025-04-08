@@ -3,29 +3,26 @@ import { FetchError, defined } from '../../utils';
 import { CopyStickerPackHandler } from './copy-sticker-pack.handler';
 
 export class CopyStickerPackContinueHandler extends CopyStickerPackHandler {
-  match(payload: TelegramUpdate) {
-    return (
-      !!payload.callback_query?.message?.reply_to_message?.sticker &&
-      payload.callback_query.message.chat.id === payload.callback_query.from.id
-    );
+  async match(payload: TelegramUpdate) {
+    const { callback_query } = payload;
+    return !!callback_query?.message?.reply_to_message?.sticker && callback_query.message.chat.type === 'private';
   }
 
   async handle(payload: TelegramUpdate) {
-    const chatId = defined(payload.callback_query?.message?.chat.id, 'chatId');
-    const messageId = defined(payload.callback_query?.message?.message_id, 'message_id');
+    const { callback_query } = payload;
+    const { message } = callback_query ?? {};
+    const chatId = defined(message?.chat.id, 'chatId');
+    const messageId = defined(message?.message_id, 'message_id');
 
     try {
       await this.removeKeyboard(chatId, messageId);
       const originalStickerSetName = defined(
-        payload.callback_query?.message?.reply_to_message?.sticker?.set_name,
+        message?.reply_to_message?.sticker?.set_name,
         'reply_to_message?.sticker?.set_name',
       );
-      const stickerSetCopyName = defined(payload.callback_query?.data, 'payload.callback_query?.data');
-      const userId = defined(payload.callback_query?.message?.reply_to_message?.from?.id, 'reply_to_message?.from?.id');
-      const repliedMessageId = defined(
-        payload.callback_query?.message?.reply_to_message?.message_id,
-        'reply_to_message?.message_id',
-      );
+      const stickerSetCopyName = defined(callback_query?.data, 'callback_query?.data');
+      const userId = defined(message?.reply_to_message?.from?.id, 'reply_to_message?.from?.id');
+      const repliedMessageId = defined(message?.reply_to_message?.message_id, 'reply_to_message?.message_id');
 
       const { result: originalStickerSet } = await this.api.getStickerSet({ name: originalStickerSetName });
       const { result: stickerSetCopy } = await this.api.getStickerSet({ name: stickerSetCopyName });

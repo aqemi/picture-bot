@@ -13,7 +13,7 @@ type Callback = ResponseCallbackData & {
 };
 
 export class TelegramCallbackHandler extends TelegramUpdateHandler {
-  match(payload: TelegramUpdate) {
+  async match(payload: TelegramUpdate) {
     return !!payload.callback_query?.message?.reply_to_message?.text; // TODO make more reliable
   }
 
@@ -43,8 +43,6 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
           callback_query?.message?.reply_to_message?.text,
           'callback_query.message.reply_to_message.text',
         ),
-        replyToThisBot: false, // callback buttons are always on bot messages and bot does not reply to itself
-        isPrivate: callback_query?.message?.chat.type === 'private',
       };
 
       switch (callback.type) {

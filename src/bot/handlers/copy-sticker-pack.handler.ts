@@ -7,8 +7,8 @@ import { getRandomDigit } from '../../utils/random';
 export class CopyStickerPackHandler extends TelegramUpdateHandler {
   protected readonly MAX_INITIAL_STICKERS = 50;
 
-  match(payload: TelegramUpdate) {
-    return !!payload.message?.sticker && payload.message?.chat.id === payload.message?.from?.id;
+  async match(payload: TelegramUpdate) {
+    return !!payload.message?.sticker && payload.message?.chat.type === 'private';
   }
 
   async handle(payload: TelegramUpdate) {

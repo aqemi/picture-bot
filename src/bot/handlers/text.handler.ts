@@ -1,14 +1,13 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
 import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, Youtube } from '../plugins';
-import { MistralePlugin } from '../plugins/mistrale/mistrale.plugin';
 import { RestartPromptPlugin } from '../plugins/mistrale/restart.plugin';
 import { TelegramUpdateHandler } from './base.handler';
 
-const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor, Keyboard, RestartPromptPlugin, MistralePlugin];
+const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor, Keyboard, RestartPromptPlugin];
 
 export class TelegramTextHandler extends TelegramUpdateHandler {
-  match(payload: TelegramUpdate) {
+  async match(payload: TelegramUpdate) {
     return !!payload?.message?.text;
   }
 
@@ -24,8 +23,6 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
         initiatorName: defined(message?.from?.username ?? message?.from?.first_name, 'message?.from?.first_name'),
         text: defined(message?.text, 'message.text'),
         replyToText: message?.reply_to_message?.text,
-        replyToThisBot: message?.reply_to_message?.from?.username === this.botUsername,
-        isPrivate: message?.chat.type === 'private',
       };
 
       for (const Plugin of plugins) {

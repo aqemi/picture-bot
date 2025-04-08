@@ -3,12 +3,11 @@ import { defined, throwOnFetchError } from '../../utils';
 import { TelegramUpdateHandler } from './base.handler';
 
 export class TestHandler extends TelegramUpdateHandler {
-  public match(payload: Update): boolean {
+  public async match(payload: Update): Promise<boolean> {
     return payload?.message?.text === '/runtests';
   }
 
   public async handle(payload: Update): Promise<void> {
-    console.log('🚀 ~ TestHandler ~ handle ~ payload:', payload);
     await this.runTests(payload);
   }
 

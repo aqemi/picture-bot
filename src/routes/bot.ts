@@ -6,11 +6,13 @@ import {
   TelegramTextHandler,
   TelegramUpdateHandlerDerived,
   TestHandler,
+  AiHandler,
 } from '../bot/handlers';
 import { TelegramApi } from '../bot/telegram-api';
 
 const handlers: TelegramUpdateHandlerDerived[] = [
   TestHandler,
+  AiHandler,
   TelegramTextHandler,
   TelegramCallbackHandler,
   CopyStickerPackHandler,
@@ -23,7 +25,7 @@ export async function onTelegramUpdate(request: Request, env: Env): Promise<Resp
 
   for (const Handler of handlers) {
     const handler = new Handler(api, env);
-    if (handler.match(payload)) {
+    if (await handler.match(payload)) {
       await handler.handle(payload);
       return new Response(null, { status: 204 });
     }
