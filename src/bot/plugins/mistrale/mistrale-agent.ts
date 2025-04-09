@@ -1,6 +1,7 @@
 import { Mistral } from '@mistralai/mistralai';
 import { type Thread, type ThreadManager } from '../../../managers/thread.manager';
 import { config } from './config';
+import { PromptManager } from '../../../managers/prompt.manager';
 
 type AiResponse = {
   text?: string;
@@ -25,6 +26,7 @@ export class MistraleAgent {
   constructor(
     private readonly env: Env,
     private readonly threadManager: ThreadManager,
+    private readonly promptManager: PromptManager,
   ) {
     this.client = new Mistral({
       apiKey: this.env.MISTRAL_API_KEY,
@@ -96,17 +98,7 @@ export class MistraleAgent {
   // }
 
   private async getPrompt(traits: ConversationTraits): Promise<Thread> {
-    const { results } = await this.env.DB.prepare(`SELECT * FROM prompts`).run<{
-      id: string | null;
-      role: string;
-      content: string;
-    }>();
-
-    const dynamicPrompt = results.map((x) => ({
-      role: x.role as 'system' | 'user' | 'assistant',
-      content: x.content,
-    }));
-
+    const dynamicPrompt = await this.promptManager.getPrompt();
     const finalPrompt = [...config.demo.basic, ...dynamicPrompt, ...(traits.aggressive ? config.demo.aggressive : [])];
 
     return finalPrompt.sort((a, b) => {

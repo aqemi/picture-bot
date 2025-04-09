@@ -1,14 +1,16 @@
 import { ChatCompletionResponse } from '@mistralai/mistralai/models/components';
 import { env } from 'cloudflare:test';
 import { afterEach, beforeEach, describe, expect, it, Mock, MockInstance, vi } from 'vitest';
+import { PromptManager } from '../../../managers/prompt.manager';
+import { ThreadManager } from '../../../managers/thread.manager';
 import { config } from './config';
 import { MistraleAgent } from './mistrale-agent';
-import { ThreadManager } from '../../../managers/thread.manager';
 
 describe('MistraleAgent', () => {
   let agent: MistraleAgent;
   let spy: MockInstance;
   let threadManager: ThreadManager;
+  let promptManager: PromptManager;
 
   beforeEach(() => {
     threadManager = {
@@ -17,8 +19,11 @@ describe('MistraleAgent', () => {
       clearThread: vi.fn(),
       isActive: vi.fn(),
     } as unknown as ThreadManager;
+    promptManager = {
+      getPrompt: vi.fn().mockResolvedValue([]),
+    } as unknown as PromptManager;
 
-    agent = new MistraleAgent(env, threadManager);
+    agent = new MistraleAgent(env, threadManager, promptManager);
     spy = vi.spyOn(agent['client']['agents'], 'complete').mockResolvedValueOnce({
       choices: [
         {
@@ -155,7 +160,7 @@ describe('MistraleAgent', () => {
   });
 
   it('should pass dynamic prompt', async () => {
-    await env.DB.prepare('INSERT INTO prompts (role, content) VALUES (?,?)').bind('system', 'test').run();
+    (promptManager.getPrompt as Mock).mockResolvedValueOnce([{ role: 'system', content: 'test' }]);
     await agent.completion({ query: 'test', chatId: 0, username: 'test' });
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({

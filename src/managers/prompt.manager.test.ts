@@ -1,0 +1,65 @@
+
+import { env } from 'cloudflare:test';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { PromptManager } from './prompt.manager';
+
+describe('PromptManager', () => {
+  let promptManager: PromptManager;
+
+  beforeEach(async () => {
+    // Ensure the database is clean before each test
+    await env.DB.exec(`DELETE FROM prompts`);
+
+    // Initialize PromptManager with the environment database
+    promptManager = new PromptManager(env);
+  });
+
+  describe('getPrompt', () => {
+    it('should return mapped prompts from the database', async () => {
+      // Insert mock data into the database
+      await env.DB.exec(`INSERT INTO prompts (id, role, content) VALUES ('1', 'system', 'System prompt'), ('2', 'user', 'User prompt')`);
+
+      const result = await promptManager.getPrompt();
+
+      expect(result).toEqual([
+        { role: 'system', content: 'System prompt' },
+        { role: 'user', content: 'User prompt' },
+      ]);
+    });
+
+    it('should handle empty results from the database', async () => {
+      const result = await promptManager.getPrompt();
+
+      expect(result).toEqual([]);
+    });
+  });
+describe('updateSystemPrompt', () => {
+  it('should insert a new system prompt into the database', async () => {
+    const id = '1';
+    const content = 'New system prompt';
+
+    await promptManager.updateSystemPrompt(id, content);
+
+    const { results } = await env.DB.prepare(`SELECT * FROM prompts WHERE id = ?1`).bind(id).all();
+    expect(results).toEqual([
+      { id: '1', role: 'system', content: 'New system prompt' },
+    ]);
+  });
+
+  it('should update an existing system prompt in the database', async () => {
+    const id = '1';
+    const updatedContent = 'Updated system prompt';
+
+    // Insert initial prompt
+    await env.DB.exec(`INSERT INTO prompts (id, role, content) VALUES ('1', 'system', 'Initial system prompt')`);
+
+    // Update the prompt
+    await promptManager.updateSystemPrompt(id, updatedContent);
+
+    const { results } = await env.DB.prepare(`SELECT * FROM prompts WHERE id = ?1`).bind(id).all();
+    expect(results).toEqual([
+      { id: '1', role: 'system', content: 'Updated system prompt' },
+    ]);
+  });
+});
+});
