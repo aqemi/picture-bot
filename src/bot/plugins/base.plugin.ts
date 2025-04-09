@@ -2,6 +2,7 @@ import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 import { ResponseCallbackType, stringify } from '../../utils/callback-data';
 import { type TelegramApi } from '../telegram-api';
+import { ResponseHelper } from '../response-helper';
 
 export type InvocationContext = {
   chatId: number;
@@ -20,6 +21,7 @@ export abstract class BasePlugin {
     protected readonly ctx: InvocationContext,
     protected readonly api: TelegramApi,
     protected readonly env: Env,
+    protected readonly responseHelper: ResponseHelper,
   ) {}
 
   public abstract match(): boolean | Promise<boolean>;
@@ -58,5 +60,5 @@ export abstract class BasePlugin {
 }
 
 export type PluginDerived = {
-  new (ctx: InvocationContext, api: TelegramApi, env: Env): BasePlugin;
+  new (ctx: InvocationContext, api: TelegramApi, env: Env, responseHelper: ResponseHelper): BasePlugin;
 } & typeof BasePlugin;

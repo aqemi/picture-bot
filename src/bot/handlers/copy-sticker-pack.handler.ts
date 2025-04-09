@@ -43,8 +43,8 @@ export class CopyStickerPackHandler extends TelegramUpdateHandler {
       } else {
         await this.sendComplete(stickerSetCopyName, chatId, messageId);
       }
-    } catch (err) {
-      await this.reportError(err, { chatId });
+    } catch (error) {
+      await this.responseHelper.sendError(chatId, error);
     }
   }
 

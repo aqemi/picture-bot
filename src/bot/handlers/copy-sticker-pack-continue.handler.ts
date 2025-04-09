@@ -15,7 +15,7 @@ export class CopyStickerPackContinueHandler extends CopyStickerPackHandler {
     const messageId = defined(message?.message_id, 'message_id');
 
     try {
-      await this.removeKeyboard(chatId, messageId);
+      await this.responseHelper.removeKeyboard(chatId, messageId);
       const originalStickerSetName = defined(
         message?.reply_to_message?.sticker?.set_name,
         'reply_to_message?.sticker?.set_name',
@@ -52,11 +52,11 @@ export class CopyStickerPackContinueHandler extends CopyStickerPackHandler {
       }
 
       await this.sendComplete(stickerSetCopyName, chatId, repliedMessageId);
-    } catch (err) {
-      if (err instanceof FetchError && err.code === 429) {
-        throw err;
+    } catch (error) {
+      if (error instanceof FetchError && error.code === 429) {
+        throw error;
       } else {
-        await this.reportError(err, { chatId });
+        await this.responseHelper.sendError(chatId, error);
       }
     }
   }

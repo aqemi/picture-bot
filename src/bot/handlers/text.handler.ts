@@ -26,18 +26,15 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
       };
 
       for (const Plugin of plugins) {
-        const plugin = new Plugin(ctx, this.api, this.env);
+        const plugin = new Plugin(ctx, this.api, this.env, this.responseHelper);
         if (await plugin.match()) {
           return await plugin.run({});
         }
       }
 
       console.debug('No match for message', payload);
-    } catch (err) {
-      await this.reportError(err, {
-        chatId,
-        replyTo: message?.message_id,
-      });
+    } catch (error) {
+      await this.responseHelper.sendError(chatId, error, message?.message_id);
     }
   }
 }

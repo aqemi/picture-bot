@@ -14,9 +14,6 @@ type SendMessageOptions = Telegram.SendMessageOptions & {
   text: string;
 };
 
-type SendJsonOptions = Pick<SendMessageOptions, 'chat_id' | 'reply_to_message_id' | 'business_connection_id'> & {
-  json: object;
-};
 type SetWebHookOptions = Telegram.SetWebHookOptions & {
   drop_pending_updates?: true;
 };
@@ -134,14 +131,6 @@ export class TelegramApi {
 
   public async sendMessage(options: SendMessageOptions) {
     return this.makeRequest<Telegram.Message>('sendMessage', options);
-  }
-
-  public async sendJSON(options: SendJsonOptions) {
-    const json = JSON.stringify(options.json, null, 2);
-    const open = '```json\n';
-    const close = '\n```';
-    const text = `${open}${json}${close}`;
-    return await this.sendMessage({ ...options, text, parse_mode: 'MarkdownV2' });
   }
 
   public async setMessageReaction(options: SetMessageReactionOptions) {

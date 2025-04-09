@@ -1,3 +1,4 @@
+import { ResponseHelper } from '../response-helper';
 import { TelegramApi } from '../telegram-api';
 import { BasePlugin, InvocationContext } from './base.plugin';
 
@@ -10,8 +11,9 @@ export abstract class RegexBasedPlugin extends BasePlugin {
     protected readonly ctx: InvocationContext,
     protected readonly api: TelegramApi,
     protected readonly env: Env,
+    protected readonly responseHelper: ResponseHelper,
   ) {
-    super(ctx, api, env);
+    super(ctx, api, env, responseHelper);
     this.replyTo = ctx.replyToId ?? ctx.messageId;
   }
 
@@ -37,5 +39,5 @@ export abstract class RegexBasedPlugin extends BasePlugin {
   }
 }
 export type RegexBasedPluginDerived = {
-  new (ctx: InvocationContext, api: TelegramApi, env: Env): RegexBasedPlugin;
+  new (ctx: InvocationContext, api: TelegramApi, env: Env, responseHelper: ResponseHelper): RegexBasedPlugin;
 } & typeof RegexBasedPlugin;

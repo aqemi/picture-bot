@@ -55,7 +55,7 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
           break;
         }
         case ResponseCallbackType.More: {
-          await this.removeKeyboard(ctx.chatId, ctx.messageId);
+          await this.responseHelper.removeKeyboard(ctx.chatId, ctx.messageId);
           await this.loadMore(ctx, callback);
           break;
         }
@@ -63,8 +63,9 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
           throw new Error(`Unknown callback ${callback.type}`);
         }
       }
-    } catch (err) {
-      await this.reportError(err, { chatId });
+    } catch (error) {
+      console.error('Error in callback handler ', error);
+      await this.responseHelper.sendError(chatId, error);
     }
   }
 
@@ -94,6 +95,8 @@ export class TelegramCallbackHandler extends TelegramUpdateHandler {
     if (!Plugin) {
       throw new Error(`Unknown plugin ${plugin}`);
     }
-    return await new Plugin(ctx, this.api, this.env).run({ resultNumber: defined(resultNumber, 'resultNumber') });
+    return await new Plugin(ctx, this.api, this.env, this.responseHelper).run({
+      resultNumber: defined(resultNumber, 'resultNumber'),
+    });
   }
 }
