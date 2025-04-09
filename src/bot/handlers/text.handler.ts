@@ -1,10 +1,10 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
-import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, Youtube } from '../plugins';
+import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, TestPlugin, Youtube } from '../plugins';
 import { RestartPromptPlugin } from '../plugins/mistrale/restart.plugin';
 import { TelegramUpdateHandler } from './base.handler';
 
-const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor, Keyboard, RestartPromptPlugin];
+const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor, Keyboard, RestartPromptPlugin, TestPlugin];
 
 export class TelegramTextHandler extends TelegramUpdateHandler {
   async match(payload: TelegramUpdate) {
