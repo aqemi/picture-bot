@@ -40,36 +40,4 @@ describe('env utility functions', () => {
       expect(testString.replace(regex, '[REDACTED]')).toBe('[REDACTED] [REDACTED] 42 true');
     });
   });
-
-  describe('getEnabledStickerSets', () => {
-    it('should return an array of sticker sets', () => {
-      const env = { STICKER_SETS: 'set1,set2,set3' } as Env;
-      const result = getEnabledStickerSets(env);
-      expect(result).toEqual(['set1', 'set2', 'set3']);
-    });
-
-    it('should trim spaces from sticker sets', () => {
-      const env = { STICKER_SETS: ' set1 , set2 , set3 ' } as Env;
-      const result = getEnabledStickerSets(env);
-      expect(result).toEqual(['set1', 'set2', 'set3']);
-    });
-
-    it('should return an empty array if STICKER_SETS is empty', () => {
-      const env = { STICKER_SETS: '' } as Env;
-      const result = getEnabledStickerSets(env);
-      expect(result).toEqual([]);
-    });
-
-    it('should handle a single sticker set', () => {
-      const env = { STICKER_SETS: 'set1' } as Env;
-      const result = getEnabledStickerSets(env);
-      expect(result).toEqual(['set1']);
-    });
-
-    it('should handle multiple sticker sets with extra commas', () => {
-      const env = { STICKER_SETS: 'set1,,set2,,set3,' } as Env;
-      const result = getEnabledStickerSets(env);
-      expect(result).toEqual(['set1', '', 'set2', '', 'set3', '']);
-    });
-  });
 });

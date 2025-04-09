@@ -1,4 +1,6 @@
 import { TelegramApi } from '../bot/telegram-api';
+import { PromptManager } from '../managers/prompt.manager';
+import { StickerManager } from '../managers/sticker.manager';
 import { getBotEndpoint } from '../utils';
 
 async function registerTelegramWebhook(api: TelegramApi, env: Env, host: string) {
@@ -9,32 +11,19 @@ async function registerTelegramWebhook(api: TelegramApi, env: Env, host: string)
   });
 }
 
-async function getStickerPackPrompt(api: TelegramApi, env: Env): Promise<string> {
-  const stickerpacks = await Promise.all(getStickerSets(env).map((name) => api.getStickerSet({ name })));
-  const packPrompts = stickerpacks.map(
-    ({ result: pack }) => `${pack.title} (${pack.name})\n${pack.stickers.map((s) => s.emoji).join()}`,
-  );
-  const prompt = `Доступные стикеры:\n\n${packPrompts.join('\n\n')}`;
-  return prompt;
-}
-
-async function updateStickerPrompt(prompt: string, env: Env): Promise<void> {
-  await env.DB.prepare(
-    'INSERT INTO prompts (id, role, content) VALUES (?1, ?2, ?3) ON CONFLICT DO UPDATE SET content = ?3',
-  )
-    .bind('sticker', 'system', prompt)
-    .run();
-}
-
 export async function install(req: Request, env: Env): Promise<Response> {
   const { host } = new URL(req.url);
   const api = new TelegramApi(env.TG_TOKEN);
   const setWebhookResponse = await registerTelegramWebhook(api, env, host);
 
-  const stickerPrompt = await getStickerPackPrompt(api, env);
-  await updateStickerPrompt(stickerPrompt, env);
+  const stickersPrompt = await new StickerManager(api, env).getPrompt();
+  await new PromptManager(env).updateSystemPrompt('sticker', stickersPrompt);
 
   return new Response(
-    JSON.stringify({ setWebhook: setWebhookResponse, getWebhookInfo: await api.getWebhookInfo(), stickerPrompt }),
+    JSON.stringify({
+      setWebhook: setWebhookResponse,
+      getWebhookInfo: await api.getWebhookInfo(),
+      stickersPrompt,
+    }),
   );
 }
