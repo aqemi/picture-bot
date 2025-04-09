@@ -1,5 +1,5 @@
 import { Mistral } from '@mistralai/mistralai';
-import { AssistantMessage, SystemMessage, ToolMessage, UserMessage } from '@mistralai/mistralai/models/components';
+import { type Thread, type ThreadManager } from '../../../managers/thread.manager';
 import { config } from './config';
 
 type AiResponse = {
@@ -10,23 +10,9 @@ type AiResponse = {
   raw: string;
 };
 
-type ThreadMessage = {
-  chatId: number;
-  createdAt: string;
-  role: 'assistant' | 'user';
-  content: string;
-};
-
 type ConversationTraits = {
   aggressive: boolean;
 };
-
-type Thread = Array<
-  | (SystemMessage & { role: 'system' })
-  | (UserMessage & { role: 'user' })
-  | (AssistantMessage & { role: 'assistant' })
-  | (ToolMessage & { role: 'tool' })
->;
 
 type CompletionParams = {
   query: string;
@@ -36,7 +22,10 @@ type CompletionParams = {
 
 export class MistraleAgent {
   private readonly client: Mistral;
-  constructor(private readonly env: Env) {
+  constructor(
+    private readonly env: Env,
+    private readonly threadManager: ThreadManager,
+  ) {
     this.client = new Mistral({
       apiKey: this.env.MISTRAL_API_KEY,
       serverURL: `https://gateway.ai.cloudflare.com/v1/${this.env.CF_ACCOUNT_ID}/${this.env.AI_GATEWAY_ID}/mistral`,
@@ -45,8 +34,8 @@ export class MistraleAgent {
 
   public async completion({ query, chatId, username }: CompletionParams): Promise<AiResponse> {
     const formettedQuery = `[USERNAME]${username}[/USERNAME]: ${query}`;
-    await this.appendThread({ chatId, content: formettedQuery, role: 'user' });
-    const thread = await this.getThread(chatId);
+    await this.threadManager.appendThread({ chatId, content: formettedQuery, role: 'user' });
+    const thread = await this.threadManager.getThread(chatId);
     const prompt = await this.getPrompt({ aggressive: true });
     const { choices } = await this.client.agents.complete({
       agentId: this.env.MISTRAL_AGENT_ID,
@@ -56,7 +45,7 @@ export class MistraleAgent {
 
     const content = choices?.[0].message.content;
     if (typeof content === 'string') {
-      await this.appendThread({ chatId, role: 'assistant', content });
+      await this.threadManager.appendThread({ chatId, role: 'assistant', content });
       const parsed = this.parseAiResponse(content);
       return parsed;
     } else {
@@ -87,24 +76,24 @@ export class MistraleAgent {
     return typeof content === 'string' ? content : '';
   }
 
-  private async classifyThread(thread: Thread): Promise<ConversationTraits> {
-    try {
-      const { results } = await this.client.classifiers.moderateChat({
-        inputs: thread,
-        model: 'mistral-moderation-latest',
-      });
-      await new Promise((resolve) => setTimeout(resolve, 500));
+  // private async classifyThread(thread: Thread): Promise<ConversationTraits> {
+  //   try {
+  //     const { results } = await this.client.classifiers.moderateChat({
+  //       inputs: thread,
+  //       model: 'mistral-moderation-latest',
+  //     });
+  //     await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const aggressive = Object.values(results?.[0].categoryScores ?? {}).some((x) => x > 0.1);
+  //     const aggressive = Object.values(results?.[0].categoryScores ?? {}).some((x) => x > 0.1);
 
-      return { aggressive };
-    } catch (error: any) {
-      if (error.status !== 429) {
-        console.error('Error on classification request', error);
-      }
-      return { aggressive: false };
-    }
-  }
+  //     return { aggressive };
+  //   } catch (error: any) {
+  //     if (error.status !== 429) {
+  //       console.error('Error on classification request', error);
+  //     }
+  //     return { aggressive: false };
+  //   }
+  // }
 
   private async getPrompt(traits: ConversationTraits): Promise<Thread> {
     const { results } = await this.env.DB.prepare(`SELECT * FROM prompts`).run<{
@@ -159,18 +148,5 @@ export class MistraleAgent {
       return false;
     }
     return true;
-  }
-
-  private async getThread(chatId: number): Promise<Thread> {
-    const { results } = await this.env.DB.prepare('SELECT * FROM threads WHERE chatId = ?')
-      .bind(chatId)
-      .all<ThreadMessage>();
-    return results.map((x) => ({ role: x.role, content: x.content }));
-  }
-
-  private async appendThread(message: Omit<ThreadMessage, 'createdAt'>): Promise<void> {
-    await this.env.DB.prepare('INSERT INTO threads (chatId, role, content) VALUES(?,?,?)')
-      .bind(message.chatId, message.role, message.content)
-      .run();
   }
 }

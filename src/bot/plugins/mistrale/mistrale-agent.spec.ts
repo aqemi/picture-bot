@@ -1,15 +1,24 @@
 import { ChatCompletionResponse } from '@mistralai/mistralai/models/components';
 import { env } from 'cloudflare:test';
-import { afterEach, beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, Mock, MockInstance, vi } from 'vitest';
 import { config } from './config';
 import { MistraleAgent } from './mistrale-agent';
+import { ThreadManager } from '../../../managers/thread.manager';
 
 describe('MistraleAgent', () => {
   let agent: MistraleAgent;
   let spy: MockInstance;
+  let threadManager: ThreadManager;
 
   beforeEach(() => {
-    agent = new MistraleAgent(env);
+    threadManager = {
+      appendThread: vi.fn(),
+      getThread: vi.fn().mockResolvedValue([]), // Default to returning an empty array
+      clearThread: vi.fn(),
+      isActive: vi.fn(),
+    } as unknown as ThreadManager;
+
+    agent = new MistraleAgent(env, threadManager);
     spy = vi.spyOn(agent['client']['agents'], 'complete').mockResolvedValueOnce({
       choices: [
         {
@@ -123,14 +132,10 @@ describe('MistraleAgent', () => {
 
   it('should format user input', async () => {
     await agent.completion({ query: 'test', chatId: 0, username: 'test' });
-    expect(spy).toHaveBeenCalledWith(
+    expect(threadManager.appendThread).toHaveBeenCalledWith(
       expect.objectContaining({
-        messages: expect.arrayContaining([
-          {
-            content: '[USERNAME]test[/USERNAME]: test',
-            role: 'user',
-          },
-        ]),
+        content: '[USERNAME]test[/USERNAME]: test',
+        role: 'user',
       }),
     );
   });
@@ -160,45 +165,27 @@ describe('MistraleAgent', () => {
   });
 
   it('should pass previous replies', async () => {
-    await env.DB.prepare('INSERT INTO threads (chatId, role, content) VALUES (?,?,?)')
-      .bind(0, 'assistant', 'test')
-      .run();
+    (threadManager.getThread as Mock).mockResolvedValueOnce([{ role: 'assistant', content: 'test' }]);
     await agent.completion({ query: 'test', chatId: 0, username: 'test' });
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         messages: expect.arrayContaining([{ role: 'assistant', content: 'test' }]),
       }),
     );
-  });
-
-  it('should not pass previous replies from other chat', async () => {
-    await env.DB.prepare('INSERT INTO threads (chatId, role, content) VALUES (?,?,?)')
-      .bind(1, 'assistant', 'other')
-      .run();
-    await agent.completion({ query: 'test', chatId: 0, username: 'test' });
-    expect(spy).not.toHaveBeenCalledWith(
-      expect.objectContaining({
-        messages: expect.arrayContaining([{ role: 'assistant', content: 'other' }]),
-      }),
-    );
+    expect(threadManager.getThread).toHaveBeenCalledWith(0);
   });
 
   it('store thread', async () => {
     await agent.completion({ query: 'test', chatId: 0, username: 'test' });
-
-    const { results } = await env.DB.prepare('SELECT * FROM threads WHERE chatId = ?').bind(0).all();
-    expect(results).toHaveLength(2);
-    expect(results).toContainEqual({
+    expect(threadManager.appendThread).toHaveBeenCalledWith({
       chatId: 0,
       role: 'user',
       content: '[USERNAME]test[/USERNAME]: test',
-      createdAt: expect.any(String),
     });
-    expect(results).toContainEqual({
+    expect(threadManager.appendThread).toHaveBeenCalledWith({
       chatId: 0,
       role: 'assistant',
       content: '{"text":"valid"}',
-      createdAt: expect.any(String),
     });
   });
 });
