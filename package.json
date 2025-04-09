@@ -24,7 +24,7 @@
     "typescript": "^5.8.3",
     "vitest": "~3.0.7",
     "wait-on": "^8.0.3",
-    "wrangler": "^4.8.0"
+    "wrangler": "^4.9.1"
   },
   "private": true,
   "scripts": {

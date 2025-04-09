@@ -8,8 +8,8 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { onTelegramUpdate, info, install, ok } from './routes';
-import { botEndpoint } from './utils/bot-endpoint';
+import { info, install, ok, onTelegramUpdate } from './routes';
+import { getBotEndpoint } from './utils/env';
 
 type Handler = (req: Request, env: Env) => Promise<Response>;
 
@@ -17,7 +17,7 @@ const buildMapping = (env: Env): Record<string, Handler> => ({
   '/install': install,
   '/': ok,
   '/info': info,
-  [botEndpoint(env.TG_TOKEN)]: onTelegramUpdate,
+  [getBotEndpoint(env)]: onTelegramUpdate,
 });
 
 export default {

@@ -1,10 +1,9 @@
 import { TelegramApi } from '../bot/telegram-api';
-import { botEndpoint } from '../utils';
-import { getStickerSets } from '../utils/sticketsets';
+import { getBotEndpoint } from '../utils';
 
 async function registerTelegramWebhook(api: TelegramApi, env: Env, host: string) {
   return await api.setWebhook({
-    url: `https://${host}${botEndpoint(env.TG_TOKEN)}`,
+    url: `https://${host}${getBotEndpoint(env)}`,
     allowed_updates: ['message', 'callback_query', 'business_message', 'edited_business_message'],
     drop_pending_updates: true,
   });

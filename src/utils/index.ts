@@ -1,3 +1,3 @@
-export * from './bot-endpoint';
+export * from './env';
 export * from './fetch-error';
 export * from './defined';

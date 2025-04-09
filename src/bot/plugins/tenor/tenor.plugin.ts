@@ -1,4 +1,4 @@
-import { throwOnFetchError } from '../../../utils';
+import { getBotUsername, throwOnFetchError } from '../../../utils';
 import { RegexBasedPlugin } from '../regex-based.plugin';
 import { SearchResponse } from './tenor-api.interface';
 
@@ -14,7 +14,7 @@ export class Tenor extends RegexBasedPlugin {
       limit: ITEMS_PER_PAGE.toString(),
       contentfilter: 'off',
       media_filter: 'mp4',
-      client_key: 'ohime_sama_bot',
+      client_key: getBotUsername(this.env),
     });
     const url = `https://tenor.googleapis.com/v2/search?${params}`;
 
