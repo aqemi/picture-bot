@@ -7,10 +7,6 @@ describe('PromptManager', () => {
   let promptManager: PromptManager;
 
   beforeEach(async () => {
-    // Ensure the database is clean before each test
-    await env.DB.exec(`DELETE FROM prompts`);
-
-    // Initialize PromptManager with the environment database
     promptManager = new PromptManager(env);
   });
 

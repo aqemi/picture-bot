@@ -40,7 +40,8 @@
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}'",
     "test": "vitest watch",
     "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "sql": "wrangler d1 execute picture-bot --command "
   },
   "dependencies": {
     "@mistralai/mistralai": "^1.5.2"

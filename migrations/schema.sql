@@ -35,9 +35,14 @@ CREATE TABLE
   );
 
 DROP TABLE IF EXISTS gifs;
+
 CREATE TABLE
   gifs (
     id INTEGER PRIMARY KEY,
     file_id TEXT NOT NULL,
     description TEXT NOT NULL
   );
+
+DROP INDEX IF EXISTS idx_gifs_file_id;
+
+CREATE UNIQUE INDEX idx_gifs_file_id ON gifs (file_id);

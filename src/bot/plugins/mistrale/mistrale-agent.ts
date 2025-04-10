@@ -58,26 +58,6 @@ export class MistraleAgent {
     }
   }
 
-  public async classifyImage(imageUrl: string): Promise<string> {
-    const response = await this.client.chat.complete({
-      model: 'pixtral-12b',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: 'Short list of tags to describe this ticker for future usage in prompt.' },
-            {
-              type: 'image_url',
-              imageUrl,
-            },
-          ],
-        },
-      ],
-    });
-    const { content } = response.choices?.[0].message ?? {};
-    return typeof content === 'string' ? content : '';
-  }
-
   // private async classifyThread(thread: Thread): Promise<ConversationTraits> {
   //   try {
   //     const { results } = await this.client.classifiers.moderateChat({
