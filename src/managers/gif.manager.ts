@@ -20,9 +20,9 @@ export class GifManager {
     });
   }
 
-  public async getGif(id: string | number): Promise<string | undefined> {
+  public async getGif(id: string | number): Promise<Gif | null> {
     const gif = await this.env.DB.prepare('SELECT * FROM gifs WHERE id=?').bind(id).first<Gif>();
-    return gif?.file_id;
+    return gif;
   }
 
   public async addGif(file_id: string, url: string): Promise<string> {

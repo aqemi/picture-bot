@@ -33,6 +33,20 @@ describe('ResponseHelper', () => {
         reply_to_message_id: replyTo,
       });
     });
+    it('should handle string input correctly', async () => {
+      const chatId = 123;
+      const jsonString = '{"key":"value"}';
+      const replyTo = 456;
+
+      await responseHelper.sendJSON(chatId, jsonString, replyTo);
+
+      expect(mockApi.sendMessage).toHaveBeenCalledWith({
+        chat_id: chatId,
+        text: '```json\n{"key":"value"}\n```',
+        parse_mode: 'MarkdownV2',
+        reply_to_message_id: replyTo,
+      });
+    });
   });
 
   describe('sendError', () => {

@@ -10,8 +10,8 @@ export class ResponseHelper {
     private readonly env: Env,
   ) {}
 
-  public async sendJSON(chatId: number, json: object, replyTo?: number): Promise<void> {
-    const stringified = JSON.stringify(json, null, 2);
+  public async sendJSON(chatId: number, json: object | string, replyTo?: number): Promise<void> {
+    const stringified = typeof json === 'string' ? json : JSON.stringify(json, null, 2);
     const open = '```json\n';
     const close = '\n```';
     const text = `${open}${stringified}${close}`;
