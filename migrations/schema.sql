@@ -21,22 +21,22 @@ DROP TRIGGER IF EXISTS delete_old_messages;
 CREATE TRIGGER delete_old_messages AFTER INSERT ON threads BEGIN
 DELETE FROM threads
 WHERE
-  createdAt < datetime ('now', '-1 day');
+  createdAt < datetime ('now', '-3 days');
 
 END;
 
-DROP TABLE IF EXISTS prompts;
+-- DROP TABLE IF EXISTS prompts;
 
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
   prompts (
     id TEXT PRIMARY KEY,
     role TEXT CHECK (role IN ('user', 'assistant', 'system')) NOT NULL,
     content TEXT NOT NULL
   );
 
-DROP TABLE IF EXISTS gifs;
+-- DROP TABLE IF EXISTS gifs;
 
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
   gifs (
     id INTEGER PRIMARY KEY,
     file_id TEXT NOT NULL,
