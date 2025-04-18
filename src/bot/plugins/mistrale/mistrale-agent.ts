@@ -1,9 +1,9 @@
 import { Mistral } from '@mistralai/mistralai';
-import { type Thread, type ThreadManager } from '../../../managers/thread.manager';
-import { config } from './config';
 import { PromptManager } from '../../../managers/prompt.manager';
+import { type Thread } from '../../../managers/thread.manager';
+import { config } from '../../ai.config';
 
-type AiResponse = {
+export type AiResponse = {
   text?: string;
   sticker?: string;
   gif?: string | number;
@@ -15,17 +15,10 @@ type ConversationTraits = {
   aggressive: boolean;
 };
 
-type CompletionParams = {
-  query: string;
-  username: string;
-  chatId: number;
-};
-
 export class MistraleAgent {
   private readonly client: Mistral;
   constructor(
     private readonly env: Env,
-    private readonly threadManager: ThreadManager,
     private readonly promptManager: PromptManager,
   ) {
     this.client = new Mistral({
@@ -34,10 +27,7 @@ export class MistraleAgent {
     });
   }
 
-  public async completion({ query, chatId, username }: CompletionParams): Promise<AiResponse> {
-    const formettedQuery = `[USERNAME]${username}[/USERNAME]: ${query}`;
-    await this.threadManager.appendThread({ chatId, content: formettedQuery, role: 'user' });
-    const thread = await this.threadManager.getThread(chatId);
+  public async completion(thread: Thread): Promise<AiResponse> {
     const prompt = await this.getPrompt({ aggressive: true });
     const { choices } = await this.client.agents.complete({
       agentId: this.env.MISTRAL_AGENT_ID,
@@ -47,7 +37,6 @@ export class MistraleAgent {
 
     const content = choices?.[0].message.content;
     if (typeof content === 'string') {
-      await this.threadManager.appendThread({ chatId, role: 'assistant', content });
       const parsed = this.parseAiResponse(content);
       return parsed;
     } else {
@@ -58,27 +47,8 @@ export class MistraleAgent {
     }
   }
 
-  // private async classifyThread(thread: Thread): Promise<ConversationTraits> {
-  //   try {
-  //     const { results } = await this.client.classifiers.moderateChat({
-  //       inputs: thread,
-  //       model: 'mistral-moderation-latest',
-  //     });
-  //     await new Promise((resolve) => setTimeout(resolve, 500));
-
-  //     const aggressive = Object.values(results?.[0].categoryScores ?? {}).some((x) => x > 0.1);
-
-  //     return { aggressive };
-  //   } catch (error: any) {
-  //     if (error.status !== 429) {
-  //       console.error('Error on classification request', error);
-  //     }
-  //     return { aggressive: false };
-  //   }
-  // }
-
   private async getPrompt(traits: ConversationTraits): Promise<Thread> {
-    const dynamicPrompt = await this.promptManager.getPrompt();
+    const dynamicPrompt = await this.promptManager.getSystemPrompt();
     const finalPrompt = [...config.demo.basic, ...dynamicPrompt, ...(traits.aggressive ? config.demo.aggressive : [])];
 
     return finalPrompt.sort((a, b) => {

@@ -2,28 +2,20 @@ import { ChatCompletionResponse } from '@mistralai/mistralai/models/components';
 import { env } from 'cloudflare:test';
 import { afterEach, beforeEach, describe, expect, it, Mock, MockInstance, vi } from 'vitest';
 import { PromptManager } from '../../../managers/prompt.manager';
-import { ThreadManager } from '../../../managers/thread.manager';
-import { config } from './config';
+import { config } from '../../ai.config';
 import { MistraleAgent } from './mistrale-agent';
 
 describe('MistraleAgent', () => {
   let agent: MistraleAgent;
   let spy: MockInstance;
-  let threadManager: ThreadManager;
   let promptManager: PromptManager;
 
   beforeEach(() => {
-    threadManager = {
-      appendThread: vi.fn(),
-      getThread: vi.fn().mockResolvedValue([]), // Default to returning an empty array
-      clearThread: vi.fn(),
-      isActive: vi.fn(),
-    } as unknown as ThreadManager;
     promptManager = {
-      getPrompt: vi.fn().mockResolvedValue([]),
+      getSystemPrompt: vi.fn().mockResolvedValue([]),
     } as unknown as PromptManager;
 
-    agent = new MistraleAgent(env, threadManager, promptManager);
+    agent = new MistraleAgent(env, promptManager);
     spy = vi.spyOn(agent['client']['agents'], 'complete').mockResolvedValueOnce({
       choices: [
         {
@@ -50,7 +42,7 @@ describe('MistraleAgent', () => {
         },
       ],
     } as ChatCompletionResponse);
-    const response = await agent.completion({ query: 'test', chatId: 0, username: 'test' });
+    const response = await agent.completion([{ role: 'user', content: 'test' }]);
     expect(response.valid).toEqual(true);
     expect(response.raw).toEqual(aiResponse);
     expect(response.text).toEqual('text');
@@ -68,7 +60,7 @@ describe('MistraleAgent', () => {
         },
       ],
     } as ChatCompletionResponse);
-    const response = await agent.completion({ query: 'test', chatId: 0, username: 'test' });
+    const response = await agent.completion([{ role: 'user', content: 'test' }]);
     expect(response.valid).toEqual(true);
     expect(response.raw).toEqual(aiResponse);
     expect(response.text).toEqual('text');
@@ -84,7 +76,7 @@ describe('MistraleAgent', () => {
         },
       ],
     } as ChatCompletionResponse);
-    const response = await agent.completion({ query: 'test', chatId: 0, username: 'test' });
+    const response = await agent.completion([{ role: 'user', content: 'test' }]);
     expect(response.valid).toEqual(true);
     expect(response.raw).toEqual(aiResponse);
     expect(response.sticker).toEqual('sticker');
@@ -100,7 +92,7 @@ describe('MistraleAgent', () => {
         },
       ],
     } as ChatCompletionResponse);
-    const response = await agent.completion({ query: 'test', chatId: 0, username: 'test' });
+    const response = await agent.completion([{ role: 'user', content: 'test' }]);
     expect(response.valid).toEqual(false);
     expect(response.raw).toEqual('malformed');
   });
@@ -115,7 +107,7 @@ describe('MistraleAgent', () => {
         },
       ],
     } as ChatCompletionResponse);
-    const response = await agent.completion({ query: 'test', chatId: 0, username: 'test' });
+    const response = await agent.completion([{ role: 'user', content: 'test' }]);
     expect(response.valid).toEqual(false);
     expect(response.raw).toEqual('{"text":["test"]}');
   });
@@ -130,23 +122,13 @@ describe('MistraleAgent', () => {
         },
       ],
     } as ChatCompletionResponse);
-    const response = await agent.completion({ query: 'test', chatId: 0, username: 'test' });
+    const response = await agent.completion([{ role: 'user', content: 'test' }]);
     expect(response.valid).toEqual(false);
     expect(response.raw).toEqual('{"text":"valid","sticker":null}');
   });
 
-  it('should format user input', async () => {
-    await agent.completion({ query: 'test', chatId: 0, username: 'test' });
-    expect(threadManager.appendThread).toHaveBeenCalledWith(
-      expect.objectContaining({
-        content: '[USERNAME]test[/USERNAME]: test',
-        role: 'user',
-      }),
-    );
-  });
-
   it('should pass static prompt', async () => {
-    await agent.completion({ query: 'test', chatId: 0, username: 'test' });
+    await agent.completion([{ role: 'user', content: 'test' }]);
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         messages: expect.arrayContaining(config.demo.aggressive),
@@ -160,37 +142,12 @@ describe('MistraleAgent', () => {
   });
 
   it('should pass dynamic prompt', async () => {
-    (promptManager.getPrompt as Mock).mockResolvedValueOnce([{ role: 'system', content: 'test' }]);
-    await agent.completion({ query: 'test', chatId: 0, username: 'test' });
+    (promptManager.getSystemPrompt as Mock).mockResolvedValueOnce([{ role: 'system', content: 'test' }]);
+    await agent.completion([{ role: 'user', content: 'test' }]);
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         messages: expect.arrayContaining([{ role: 'system', content: 'test' }]),
       }),
     );
-  });
-
-  it('should pass previous replies', async () => {
-    (threadManager.getThread as Mock).mockResolvedValueOnce([{ role: 'assistant', content: 'test' }]);
-    await agent.completion({ query: 'test', chatId: 0, username: 'test' });
-    expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        messages: expect.arrayContaining([{ role: 'assistant', content: 'test' }]),
-      }),
-    );
-    expect(threadManager.getThread).toHaveBeenCalledWith(0);
-  });
-
-  it('store thread', async () => {
-    await agent.completion({ query: 'test', chatId: 0, username: 'test' });
-    expect(threadManager.appendThread).toHaveBeenCalledWith({
-      chatId: 0,
-      role: 'user',
-      content: '[USERNAME]test[/USERNAME]: test',
-    });
-    expect(threadManager.appendThread).toHaveBeenCalledWith({
-      chatId: 0,
-      role: 'assistant',
-      content: '{"text":"valid"}',
-    });
   });
 });
