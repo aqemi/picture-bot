@@ -7,33 +7,28 @@ describe('ThreadManager', () => {
 
   beforeEach(async () => {
     threadManager = new ThreadManager(env);
-
-    // Clear the threads table before each test
-    await env.DB.prepare('DELETE FROM threads').run();
   });
 
   it('should check if a thread is active', async () => {
-    const now = new Date().toISOString();
-    await env.DB.prepare('INSERT INTO threads (chatId, role, content, createdAt) VALUES (?, ?, ?, ?)')
-      .bind(123, 'user', 'Hello', now)
+    await env.DB.prepare('INSERT INTO threads (chatId, role, content) VALUES (?, ?, ?)')
+      .bind(123, 'user', 'Hello')
       .run();
 
-    const isActive = await threadManager.isActive(123);
+    const isActive = await threadManager.isActive(123, 60);
     expect(isActive).toBe(true);
   });
 
   it('should check if a thread is not active', async () => {
-    const ago = '2025-01-01:00:00:00';
-    await env.DB.prepare('INSERT INTO threads (chatId, role, content, createdAt) VALUES (?, ?, ?, ?)')
-      .bind(123, 'user', 'Hello', ago)
+    await env.DB.prepare('INSERT INTO threads (chatId, role, content, createdAt) VALUES (?, ?, ?, DATETIME(1092941466))')
+      .bind(123, 'user', 'Hello')
       .run();
 
-    const isActive = await threadManager.isActive(123);
+    const isActive = await threadManager.isActive(123, 60);
     expect(isActive).toBe(false);
   });
 
   it('should return false if no active thread exists', async () => {
-    const isActive = await threadManager.isActive(123);
+    const isActive = await threadManager.isActive(123, 60);
     expect(isActive).toBe(false);
   });
 

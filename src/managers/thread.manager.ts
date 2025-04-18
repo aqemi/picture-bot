@@ -1,5 +1,4 @@
 import type { AssistantMessage, SystemMessage, ToolMessage, UserMessage } from '@mistralai/mistralai/models/components';
-import { config } from '../bot/plugins/mistrale/config';
 
 type ThreadMessage = {
   chatId: number;
@@ -18,11 +17,12 @@ export type Thread = Array<
 export class ThreadManager {
   constructor(private readonly env: Env) {}
 
-  public async isActive(chatId: number): Promise<boolean> {
+  public async isActive(chatId: number, staleness: number): Promise<boolean> {
+    const stalenessThreshold = `-${staleness} seconds`;
     const result = await this.env.DB.prepare(
-      `SELECT COUNT(*) AS count FROM threads WHERE createdAt > DATETIME(CURRENT_TIMESTAMP, '${config.allReplyCooldown}') AND chatId = ?`,
+      `SELECT COUNT(*) AS count FROM threads WHERE createdAt > DATETIME(CURRENT_TIMESTAMP, ?) AND chatId = ?`,
     )
-      .bind(chatId)
+      .bind(stalenessThreshold, chatId)
       .first<{ count: number }>();
 
     return !!result && result.count > 0;
