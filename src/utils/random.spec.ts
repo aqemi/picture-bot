@@ -1,15 +1,32 @@
 import { describe, it, expect } from 'vitest';
-import { getRandomDigit } from './random';
+import { random } from './random';
 
-describe('getRandomDigit', () => {
-  it('should return a number between 0 and 9', () => {
-    const digit = getRandomDigit();
-    expect(digit).toBeGreaterThanOrEqual(0);
-    expect(digit).toBeLessThanOrEqual(9);
+describe('random', () => {
+  it('should return a number between the specified range', () => {
+    const from = 1;
+    const to = 10;
+    const result = random(from, to);
+    expect(result).toBeGreaterThanOrEqual(from);
+    expect(result).toBeLessThanOrEqual(to);
   });
 
   it('should return an integer', () => {
-    const digit = getRandomDigit();
-    expect(Number.isInteger(digit)).toBe(true);
+    const from = 1;
+    const to = 10;
+    const result = random(from, to);
+    expect(Number.isInteger(result)).toBe(true);
+  });
+
+  it('should throw an error if "from" is greater than "to"', () => {
+    const from = 10;
+    const to = 1;
+    expect(() => random(from, to)).toThrowError("The 'from' value must be less than or equal to the 'to' value.");
+  });
+
+  it('should return the same number if "from" and "to" are equal', () => {
+    const from = 5;
+    const to = 5;
+    const result = random(from, to);
+    expect(result).toBe(from);
   });
 });

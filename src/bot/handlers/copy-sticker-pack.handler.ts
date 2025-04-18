@@ -2,7 +2,7 @@ import type { Sticker, Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
 import { InputSticker } from '../telegram-api';
 import { TelegramUpdateHandler } from './base.handler';
-import { getRandomDigit } from '../../utils/random';
+import { random } from '../../utils/random';
 
 export class CopyStickerPackHandler extends TelegramUpdateHandler {
   protected readonly MAX_INITIAL_STICKERS = 50;
@@ -67,7 +67,7 @@ export class CopyStickerPackHandler extends TelegramUpdateHandler {
     const suffix = `_by_${botUsername}`;
 
     if (originalName.endsWith(suffix)) {
-      return `${originalName.replace(suffix, '')}${getRandomDigit()}${suffix}`;
+      return `${originalName.replace(suffix, '')}${random(0, 9)}${suffix}`;
     }
 
     return `${originalName}${suffix}`;
