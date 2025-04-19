@@ -11,8 +11,8 @@
     ]
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.7.5",
-    "@cloudflare/workers-types": "^4.20250407.0",
+    "@cloudflare/vitest-pool-workers": "^0.8.18",
+    "@cloudflare/workers-types": "^4.20250419.0",
     "@types/node-telegram-bot-api": "^0.64.8",
     "cloudflared": "^0.7.0",
     "concurrently": "^9.1.2",
@@ -22,9 +22,9 @@
     "open": "^10.1.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
-    "vitest": "~3.0.7",
+    "vitest": "~3.1.1",
     "wait-on": "^8.0.3",
-    "wrangler": "^4.9.1"
+    "wrangler": "^4.12.0"
   },
   "private": true,
   "scripts": {
