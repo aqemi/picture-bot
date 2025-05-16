@@ -26,12 +26,33 @@
    * databases, object storage, AI inference, real-time communication and more.
    * https://developers.cloudflare.com/workers/runtime-apis/bindings/
    */
-   "d1_databases": [
+  "d1_databases": [
     {
       "binding": "DB",
       "database_name": "picture-bot",
       "database_id": "ce6528dd-68e9-4784-803e-8a364f8fce00",
-    },]
+    },
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "THREAD",
+        "class_name": "ThreadDurableObject",
+      },
+    ],
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ThreadDurableObject"],
+    },
+  ],
+
+  "ai": {
+    "binding": "AI",
+  },
 
   /**
    * Environment Variables

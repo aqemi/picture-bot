@@ -49,8 +49,6 @@ export class ResponseHelper {
     }
   }
 
-  public async sendTyping(chatId: number): Promise<void> {}
-
   private toError(err: unknown): Error {
     return err instanceof Error ? err : new Error(JSON.stringify(err));
   }

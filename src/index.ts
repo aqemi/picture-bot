@@ -32,3 +32,5 @@ export default {
     return handler(request, env);
   },
 };
+
+export { ThreadDurableObject } from './durable-objects/thread.do';

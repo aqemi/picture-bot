@@ -8,6 +8,10 @@ export default defineWorkersProject(async () => {
 
   return {
     test: {
+      coverage: {
+        provider: 'istanbul', // or 'v8'
+        reporter: ['html']
+      },
       setupFiles: ['./test/apply-migrations.ts'],
       poolOptions: {
         workers: {

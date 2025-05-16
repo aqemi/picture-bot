@@ -8,19 +8,17 @@ import {
   TelegramCallbackHandler,
   TelegramTextHandler,
   TelegramUpdateHandlerDerived,
-  TestHandler,
 } from '../bot/handlers';
 import { ResponseHelper } from '../bot/response-helper';
 import { TelegramApi } from '../bot/telegram-api';
 
 const handlers: TelegramUpdateHandlerDerived[] = [
-  TestHandler,
+  BusinessChatHandler,
   AiHandler,
   TelegramTextHandler,
   TelegramCallbackHandler,
   CopyStickerPackHandler,
   CopyStickerPackContinueHandler,
-  BusinessChatHandler,
   StoreGifHandler,
 ];
 
@@ -33,10 +31,10 @@ export async function onTelegramUpdate(request: Request, env: Env): Promise<Resp
     const handler = new Handler(api, env, responseHelper);
     if (await handler.match(payload)) {
       await handler.handle(payload);
+      console.debug('Incoming message', payload);
       return new Response(null, { status: 204 });
     }
   }
-
-  console.debug('Unsupported update', payload);
+  console.debug('Unsupported message', payload);
   return new Response(null, { status: 204 });
 }

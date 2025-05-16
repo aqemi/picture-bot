@@ -1,8 +1,28 @@
 export const config = {
   /**
-   * https://www.sqlite.org/lang_datefunc.html
+   * Seconds
    */
-  allReplyCooldown: '-30 seconds',
+  staleness: {
+    default: 60,
+    business: 15 * 60,
+  },
+  /**
+   * Milliseconds
+   */
+  delay: {
+    idle: {
+      min: 60_000,
+      max: 600_000,
+    },
+    read: {
+      min: 10_000,
+      max: 60_000,
+    },
+    typing: {
+      min: 2000,
+      max: 5000,
+    },
+  },
   demo: {
     basic: [
       { role: 'user', content: 'извинись' },

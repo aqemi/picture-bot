@@ -89,7 +89,6 @@ type SetStickerSetThumbnailOptions = {
 
 type GetFileBlobOptions = {
   file_id: string;
-  token: string;
 };
 
 type ReactionTypeEmoji = {
@@ -104,6 +103,18 @@ type SetMessageReactionOptions = {
   message_id: number;
   reaction: ReactionType[];
   is_big?: boolean;
+};
+
+type SendChatActionOptions = Telegram.SendChatActionOptions & {
+  action: Telegram.ChatAction;
+  chat_id: number;
+  business_connection_id?: string;
+};
+
+type ReadBusinessMessageOptions = {
+  chat_id: number;
+  business_connection_id: string;
+  message_id: number;
 };
 
 export class TelegramApi {
@@ -222,5 +233,21 @@ export class TelegramApi {
     const response = await fetch(fileurl);
     await throwOnFetchError(response);
     return await response.blob();
+  }
+
+  public async getFileBuffer({ file_id }: GetFileBlobOptions): Promise<ArrayBuffer> {
+    const { result: file } = await this.getFile({ file_id });
+    const fileurl = await this.getFileUrl(file);
+    const response = await fetch(fileurl);
+    await throwOnFetchError(response);
+    return await response.arrayBuffer();
+  }
+
+  public async sendChatAction(options: SendChatActionOptions) {
+    return await this.makeRequest('sendChatAction', options);
+  }
+
+  public async readBusinessMessage(options: ReadBusinessMessageOptions) {
+    return await this.makeRequest('readBusinessMessage', options);
   }
 }
