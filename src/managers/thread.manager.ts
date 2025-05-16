@@ -20,7 +20,7 @@ export class ThreadManager {
   public async isActive(chatId: number, staleness: number): Promise<boolean> {
     const stalenessThreshold = `-${staleness} seconds`;
     const result = await this.env.DB.prepare(
-      `SELECT COUNT(*) AS count FROM threads WHERE createdAt > DATETIME(CURRENT_TIMESTAMP, ?) AND chatId = ?`,
+      `SELECT COUNT(*) AS count FROM threads WHERE createdAt > DATETIME(CURRENT_TIMESTAMP, ?) AND chatId = ? AND role = 'assistant'`,
     )
       .bind(stalenessThreshold, chatId)
       .first<{ count: number }>();

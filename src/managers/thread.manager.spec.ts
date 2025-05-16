@@ -11,15 +11,25 @@ describe('ThreadManager', () => {
 
   it('should check if a thread is active', async () => {
     await env.DB.prepare('INSERT INTO threads (chatId, role, content) VALUES (?, ?, ?)')
-      .bind(123, 'user', 'Hello')
+      .bind(123, 'assistant', 'Hello')
       .run();
 
     const isActive = await threadManager.isActive(123, 60);
     expect(isActive).toBe(true);
   });
+  it('should check if a thread not active (last is user)', async () => {
+    await env.DB.prepare('INSERT INTO threads (chatId, role, content) VALUES (?, ?, ?)')
+      .bind(123, 'user', 'Hello')
+      .run();
 
-  it('should check if a thread is not active', async () => {
-    await env.DB.prepare('INSERT INTO threads (chatId, role, content, createdAt) VALUES (?, ?, ?, DATETIME(1092941466))')
+    const isActive = await threadManager.isActive(123, 60);
+    expect(isActive).toBe(false);
+  });
+
+  it('should check if a thread is not active (time)', async () => {
+    await env.DB.prepare(
+      'INSERT INTO threads (chatId, role, content, createdAt) VALUES (?, ?, ?, DATETIME(1092941466))',
+    )
       .bind(123, 'user', 'Hello')
       .run();
 
@@ -53,9 +63,7 @@ describe('ThreadManager', () => {
   it('should append a thread message', async () => {
     await threadManager.appendThread({ chatId: 123, role: 'user', content: 'Hello' });
 
-    const { results } = await env.DB.prepare('SELECT * FROM threads WHERE chatId = ?')
-      .bind(123)
-      .all();
+    const { results } = await env.DB.prepare('SELECT * FROM threads WHERE chatId = ?').bind(123).all();
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({
       chatId: 123,
@@ -71,9 +79,7 @@ describe('ThreadManager', () => {
 
     await threadManager.clearThread(123);
 
-    const { results } = await env.DB.prepare('SELECT * FROM threads WHERE chatId = ?')
-      .bind(123)
-      .all();
+    const { results } = await env.DB.prepare('SELECT * FROM threads WHERE chatId = ?').bind(123).all();
     expect(results).toHaveLength(0);
   });
 });
