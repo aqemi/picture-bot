@@ -19,7 +19,7 @@ type SendOptions = {
 
 export class AiResponseTransformer {
   constructor(
-    private readonly env: TelegramApi,
+    private readonly env: Env,
     private readonly api: TelegramApi,
     private readonly responseHelper: ResponseHelper,
     private readonly stickerManager: StickerManager,

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, MockedFunction, vi } from 'vitest';
 import { GifManager } from '../../managers/gif.manager';
 import { StickerManager } from '../../managers/sticker.manager';
 import { PluginDerived } from '../plugins';
@@ -67,6 +67,25 @@ describe('AiResponseTransformer', () => {
     });
 
     it('should send sticker if response contains a sticker', async () => {
+      const response = { valid: true, text: 'P', sticker: '🎃', raw: 'R' };
+      const options = {
+        chatId: 123,
+        postProcessing: false,
+        rawFallback: true,
+        replyTo: 456,
+        businessConnectionId: '123',
+      };
+      (mockStickerManager.getSticker as MockedFunction<typeof mockStickerManager.getSticker>).mockResolvedValueOnce(
+        null,
+      );
+
+      await transformer.send(response, options);
+
+      expect(mockApi.sendSticker).not.toHaveBeenCalled();
+      expect(mockApi.sendMessage).toHaveBeenCalledWith({ business_connection_id: '123', chat_id: 123, text: '🎃' });
+    });
+
+    it('should send sticker as a text if response contains an invalid sticker', async () => {
       const response = { valid: true, text: 'P', sticker: '🎃', raw: 'R' };
       const options = {
         chatId: 123,
