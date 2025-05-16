@@ -31,7 +31,7 @@ export async function onTelegramUpdate(request: Request, env: Env): Promise<Resp
     const handler = new Handler(api, env, responseHelper);
     if (await handler.match(payload)) {
       await handler.handle(payload);
-      console.debug('Incoming message', payload);
+      console.debug(`Incoming message to ${handler.constructor.name}`, payload);
       return new Response(null, { status: 204 });
     }
   }

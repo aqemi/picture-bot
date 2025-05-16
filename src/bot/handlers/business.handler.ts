@@ -1,19 +1,35 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
-import { defined } from '../../utils';
 import { AiHandler } from './ai.handler';
+import { AiMessageInterpreter } from './ai-message-interpreter';
+import { getThreadObject } from '../../durable-objects/thread.do';
 
 export class BusinessChatHandler extends AiHandler {
   async match(payload: TelegramUpdate) {
     const message = payload.business_message ?? payload.edited_business_message;
-    return !!message && message.from?.id === message.chat?.id;
+    return !!this.env.FORCE_BUSINESS || (!!message && message.from?.id === message.chat?.id);
   }
 
   async handle(payload: TelegramUpdate) {
-    const message = payload.business_message ?? payload.edited_business_message;
     try {
-      await this.handleMessage(defined(message, 'business_message'));
+      const message = payload.business_message ?? payload.edited_business_message ?? payload.message;
+      if (!message) {
+        throw new Error('No message');
+      }
+      const interpreter = new AiMessageInterpreter(this.env, this.api);
+      const aiInput = await interpreter.formatMessage(message);
+      const thread = getThreadObject(this.env, message.chat.id);
+      await thread.replyWithDelay({
+        businessConnectionId: message.business_connection_id,
+        chatId: message.chat.id,
+        displayErrors: false,
+        messageId: message.message_id,
+        postProcessing: false,
+        rawFallback: false,
+        text: aiInput,
+        chatTitle: null,
+      });
     } catch (error) {
-      console.error('Error handling business message', error);
+      console.error('Error in business.handler', error);
     }
   }
 }
