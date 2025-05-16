@@ -16,6 +16,18 @@ export class AiMessageInterpreter {
   }
 
   private async convertContentToText(message: Message): Promise<string> {
+    if (message.gift) {
+      const decoded = await this.decodeImage(message.gift.gift.sticker.file_id);
+      const giftDescription = `\n${decoded}\n${message.text}\n`;
+      return this.encloseInTags('GIFT', giftDescription);
+    }
+
+    if (message.unique_gift) {
+      const decoded = await this.decodeImage(message.unique_gift.gift.model.sticker.file_id);
+      const giftDescription = `\n${decoded}\n${message.text}\n`;
+      return this.encloseInTags('GIFT', giftDescription);
+    }
+
     if (message.text) {
       return message.text;
     }

@@ -441,6 +441,98 @@ describe('AiMessageInterpreter', () => {
 
       expect(result).toBe('<USERNAME>Seele</USERNAME>\n<VIDEO_MESSAGE>A beautiful sunset.</VIDEO_MESSAGE>');
     });
+    it('should format a gift message correctly', async () => {
+      (mockEnv.AI.run as Mock).mockResolvedValueOnce({ description: 'Gift sticker description.' });
+      const message: Message = {
+        gift: {
+          gift: {
+            id: 'gift_id',
+            star_count: 100,
+            sticker: {
+              file_id: 'gift_sticker_file_id',
+              file_unique_id: 'unique_id',
+              width: 512,
+              height: 512,
+              is_animated: false,
+              is_video: false,
+              type: 'custom_emoji',
+            },
+          },
+        },
+        text: 'Happy Birthday!',
+        from: { first_name: 'GiftGiver', id: 21, is_bot: false },
+        message_id: 21,
+        chat: { id: 21, type: 'private' },
+        date: 1234567890,
+      };
+
+      const result = await interpreter.formatMessage(message);
+
+      expect(result).toBe(
+        '<USERNAME>GiftGiver</USERNAME>\n<GIFT>\nGift sticker description.\nHappy Birthday!\n</GIFT>',
+      );
+    });
+
+    it('should format a unique_gift message correctly', async () => {
+      (mockEnv.AI.run as Mock).mockResolvedValueOnce({ description: 'Unique gift sticker description.' });
+      const message: Message = {
+        unique_gift: {
+          origin: 'transfer',
+          gift: {
+            base_name: 'unique_gift',
+            name: 'Unique Gift',
+            number: 1,
+            backdrop: {
+              name: 'Unique Backdrop',
+              colors: {
+                center_color: 123456,
+                edge_color: 654321,
+                symbol_color: 111111,
+                text_color: 222222,
+              },
+              rarity_per_mille: 100,
+            },
+            symbol: {
+              name: 'Unique Symbol',
+              rarity_per_mille: 100,
+              sticker: {
+                file_id: 'unique_symbol_sticker_file_id',
+                file_unique_id: 'unique_id',
+                width: 512,
+                height: 512,
+                is_animated: false,
+                is_video: false,
+                type: 'regular',
+              },
+            },
+            model: {
+              name: 'Unique Gift',
+              rarity_per_mille: 100,
+              sticker: {
+                file_id: 'unique_gift_sticker_file_id',
+                file_unique_id: 'unique_id',
+                width: 512,
+                height: 512,
+                is_animated: false,
+                is_video: false,
+                type: 'regular',
+              },
+            },
+          },
+        },
+        text: 'Congrats!',
+        from: { first_name: 'GiftGiver', id: 22, is_bot: false },
+        message_id: 22,
+        chat: { id: 22, type: 'private' },
+        date: 1234567890,
+      };
+
+      const result = await interpreter.formatMessage(message);
+
+      expect(result).toBe(
+        '<USERNAME>GiftGiver</USERNAME>\n<GIFT>\nUnique gift sticker description.\nCongrats!\n</GIFT>',
+      );
+    });
   });
 
   it('should return the reply_to_message ID if present', async () => {
@@ -858,89 +950,89 @@ describe('AiMessageInterpreter', () => {
       expect(result).toBe(false);
     });
   });
-describe('isOtherMentioned', () => {
-  it('should return true if another user is mentioned and the bot is not mentioned', () => {
-    const message: Message = {
-      text: '@otheruser Hello!',
-      from: { first_name: 'John', id: 1, is_bot: false },
-      message_id: 1,
-      chat: { id: 1, type: 'group' },
-      date: 1234567890,
-    };
+  describe('isOtherMentioned', () => {
+    it('should return true if another user is mentioned and the bot is not mentioned', () => {
+      const message: Message = {
+        text: '@otheruser Hello!',
+        from: { first_name: 'John', id: 1, is_bot: false },
+        message_id: 1,
+        chat: { id: 1, type: 'group' },
+        date: 1234567890,
+      };
 
-    const result = interpreter.isOtherMentioned(message);
+      const result = interpreter.isOtherMentioned(message);
 
-    expect(result).toBe(true);
+      expect(result).toBe(true);
+    });
+
+    it('should return false if the bot is mentioned', () => {
+      const message: Message = {
+        text: '@bot_username_bot Hello!',
+        from: { first_name: 'Jane', id: 2, is_bot: false },
+        message_id: 2,
+        chat: { id: 2, type: 'group' },
+        date: 1234567890,
+      };
+
+      const result = interpreter.isOtherMentioned(message);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if no mention is present', () => {
+      const message: Message = {
+        text: 'Hello!',
+        from: { first_name: 'Alice', id: 3, is_bot: false },
+        message_id: 3,
+        chat: { id: 3, type: 'private' },
+        date: 1234567890,
+      };
+
+      const result = interpreter.isOtherMentioned(message);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if text is empty', () => {
+      const message: Message = {
+        text: '',
+        from: { first_name: 'Bob', id: 4, is_bot: false },
+        message_id: 4,
+        chat: { id: 4, type: 'private' },
+        date: 1234567890,
+      };
+
+      const result = interpreter.isOtherMentioned(message);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true if mention is in caption and bot is not mentioned', () => {
+      const message: Message = {
+        caption: '@someone Check this out!',
+        from: { first_name: 'Eve', id: 5, is_bot: false },
+        message_id: 5,
+        chat: { id: 5, type: 'private' },
+        date: 1234567890,
+      };
+
+      const result = interpreter.isOtherMentioned(message);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if mention is in caption and bot is mentioned', () => {
+      const message: Message = {
+        caption: '@bot_username_bot Check this out!',
+        from: { first_name: 'Frank', id: 6, is_bot: false },
+        message_id: 6,
+        chat: { id: 6, type: 'private' },
+        date: 1234567890,
+      };
+
+      const result = interpreter.isOtherMentioned(message);
+
+      expect(result).toBe(false);
+    });
   });
-
-  it('should return false if the bot is mentioned', () => {
-    const message: Message = {
-      text: '@bot_username_bot Hello!',
-      from: { first_name: 'Jane', id: 2, is_bot: false },
-      message_id: 2,
-      chat: { id: 2, type: 'group' },
-      date: 1234567890,
-    };
-
-    const result = interpreter.isOtherMentioned(message);
-
-    expect(result).toBe(false);
-  });
-
-  it('should return false if no mention is present', () => {
-    const message: Message = {
-      text: 'Hello!',
-      from: { first_name: 'Alice', id: 3, is_bot: false },
-      message_id: 3,
-      chat: { id: 3, type: 'private' },
-      date: 1234567890,
-    };
-
-    const result = interpreter.isOtherMentioned(message);
-
-    expect(result).toBe(false);
-  });
-
-  it('should return false if text is empty', () => {
-    const message: Message = {
-      text: '',
-      from: { first_name: 'Bob', id: 4, is_bot: false },
-      message_id: 4,
-      chat: { id: 4, type: 'private' },
-      date: 1234567890,
-    };
-
-    const result = interpreter.isOtherMentioned(message);
-
-    expect(result).toBe(false);
-  });
-
-  it('should return true if mention is in caption and bot is not mentioned', () => {
-    const message: Message = {
-      caption: '@someone Check this out!',
-      from: { first_name: 'Eve', id: 5, is_bot: false },
-      message_id: 5,
-      chat: { id: 5, type: 'private' },
-      date: 1234567890,
-    };
-
-    const result = interpreter.isOtherMentioned(message);
-
-    expect(result).toBe(true);
-  });
-
-  it('should return false if mention is in caption and bot is mentioned', () => {
-    const message: Message = {
-      caption: '@bot_username_bot Check this out!',
-      from: { first_name: 'Frank', id: 6, is_bot: false },
-      message_id: 6,
-      chat: { id: 6, type: 'private' },
-      date: 1234567890,
-    };
-
-    const result = interpreter.isOtherMentioned(message);
-
-    expect(result).toBe(false);
-  });
-});
 });
