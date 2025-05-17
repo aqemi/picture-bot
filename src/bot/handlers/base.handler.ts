@@ -9,6 +9,8 @@ export abstract class TelegramUpdateHandler {
     protected readonly responseHelper: ResponseHelper,
   ) {}
 
+  public readonly passThrough: boolean = false;
+
   public abstract match(payload: TelegramUpdate): Promise<boolean>;
 
   public abstract handle(payload: TelegramUpdate): Promise<void>;
