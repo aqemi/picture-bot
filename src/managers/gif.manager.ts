@@ -10,10 +10,7 @@ type Gif = {
 export class GifManager {
   private readonly client: Mistral;
 
-  constructor(
-    private readonly env: Env,
-    private readonly promptManager: PromptManager,
-  ) {
+  constructor(private readonly env: Env) {
     this.client = new Mistral({
       apiKey: this.env.MISTRAL_API_KEY,
       serverURL: `https://gateway.ai.cloudflare.com/v1/${this.env.CF_ACCOUNT_ID}/${this.env.AI_GATEWAY_ID}/mistral`,
@@ -32,8 +29,6 @@ export class GifManager {
     )
       .bind(file_id, description)
       .run();
-    const prompt = await this.getPrompt();
-    await this.promptManager.updateSystemPrompt('gif', prompt);
     return description;
   }
 
@@ -42,7 +37,7 @@ export class GifManager {
     return results;
   }
 
-  private async getPrompt(): Promise<string> {
+  public async getPrompt(): Promise<string> {
     const gifs = await this.getAllGifs();
     const prompt = `Доступные гифки:\n${gifs.map((x) => `${x.id} - ${x.description}`).join('\n')}`;
     return prompt;

@@ -2,19 +2,14 @@ import { ChatCompletionResponse } from '@mistralai/mistralai/models/components';
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
 import { GifManager } from './gif.manager';
-import { PromptManager } from './prompt.manager';
 
 describe('GifManager', () => {
   let gifManager: GifManager;
   let spy: MockInstance;
 
-  const mockPromptManager = {
-    updateSystemPrompt: vi.fn(),
-  } as unknown as PromptManager;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    gifManager = new GifManager(env, mockPromptManager);
+    gifManager = new GifManager(env);
     spy = vi.spyOn(gifManager['client']['chat'], 'complete').mockResolvedValueOnce({
       choices: [
         {
@@ -27,7 +22,7 @@ describe('GifManager', () => {
   });
 
   describe('addGif', () => {
-    it('should classify the image, add the gif to the database, and update the system prompt', async () => {
+    it('should classify the image, add the gif to the database', async () => {
       const file_id = 'test-file-id';
       const url = 'https://example.com/image.jpg';
 
@@ -50,11 +45,15 @@ describe('GifManager', () => {
           },
         ],
       });
-
-      expect(mockPromptManager.updateSystemPrompt).toHaveBeenCalledWith('gif', 'Доступные гифки:\n1 - tag1, tag2');
+      const dbResult = await env.DB.prepare('SELECT * FROM gifs WHERE file_id = ?').bind(file_id).all();
+      expect(dbResult.results).toHaveLength(1);
+      expect(dbResult.results[0]).toMatchObject({
+        file_id,
+        description: 'tag1, tag2',
+      });
       expect(result).toBe('tag1, tag2');
     });
-    it('should classify the image, add the gif to the database, and update the system prompt (duplicate)', async () => {
+    it('should classify the image, add the gif to the database (2nd)', async () => {
       await env.DB.prepare('INSERT INTO gifs (file_id, description) VALUES (?,?)').bind('test0', 'tag0').run();
       const file_id = 'test-file-id';
       const url = 'https://example.com/image.jpg';
@@ -79,13 +78,19 @@ describe('GifManager', () => {
         ],
       });
 
-      expect(mockPromptManager.updateSystemPrompt).toHaveBeenCalledWith(
-        'gif',
-        'Доступные гифки:\n1 - tag0\n2 - tag1, tag2',
-      );
+      const dbResult = await env.DB.prepare('SELECT * FROM gifs').all();
+      expect(dbResult.results).toHaveLength(2);
+      expect(dbResult.results[0]).toMatchObject({
+        file_id: 'test0',
+        description: 'tag0',
+      });
+      expect(dbResult.results[1]).toMatchObject({
+        file_id,
+        description: 'tag1, tag2',
+      });
       expect(result).toBe('tag1, tag2');
     });
-    it('should classify the image, add the gif to the database, and update the system prompt (2nd)', async () => {
+    it('should classify the image, add the gif to the database (duplicate)', async () => {
       const file_id = 'test-file-id';
       await env.DB.prepare('INSERT INTO gifs (file_id, description) VALUES (?,?)').bind(file_id, 'tag0').run();
       const url = 'https://example.com/image.jpg';
@@ -109,8 +114,13 @@ describe('GifManager', () => {
           },
         ],
       });
+      const dbResult = await env.DB.prepare('SELECT * FROM gifs WHERE file_id = ?').bind(file_id).all();
+      expect(dbResult.results).toHaveLength(1);
+      expect(dbResult.results[0]).toMatchObject({
+        file_id,
+        description: 'tag1, tag2',
+      });
 
-      expect(mockPromptManager.updateSystemPrompt).toHaveBeenCalledWith('gif', 'Доступные гифки:\n1 - tag1, tag2');
       expect(result).toBe('tag1, tag2');
     });
   });
@@ -139,6 +149,43 @@ describe('GifManager', () => {
 
       const result = await gifManager.getGif('2');
       expect(result).toEqual(gif);
+    });
+  });
+  describe('getPrompt', () => {
+    it('should return a prompt with all gifs in the correct format', async () => {
+      // Insert multiple gifs into the database
+      const gifs = [
+        { id: 1, file_id: 'file1', description: 'tag1, tag2' },
+        { id: 2, file_id: 'file2', description: 'tag3, tag4' },
+        { id: 3, file_id: 'file3', description: 'tag5, tag6' },
+      ];
+      for (const gif of gifs) {
+        await env.DB.prepare('INSERT INTO gifs (id, file_id, description) VALUES (?, ?, ?)')
+          .bind(gif.id, gif.file_id, gif.description)
+          .run();
+      }
+
+      const prompt = await gifManager.getPrompt();
+      expect(prompt).toBe('Доступные гифки:\n1 - tag1, tag2\n2 - tag3, tag4\n3 - tag5, tag6');
+    });
+
+    it('should return only the header if there are no gifs', async () => {
+      // Clear the gifs table
+      await env.DB.prepare('DELETE FROM gifs').run();
+
+      const prompt = await gifManager.getPrompt();
+      expect(prompt).toBe('Доступные гифки:\n');
+    });
+
+    it('should return a prompt with a single gif', async () => {
+      // Clear and insert one gif
+      await env.DB.prepare('DELETE FROM gifs').run();
+      await env.DB.prepare('INSERT INTO gifs (id, file_id, description) VALUES (?, ?, ?)')
+        .bind(1, 'file1', 'tag1, tag2')
+        .run();
+
+      const prompt = await gifManager.getPrompt();
+      expect(prompt).toBe('Доступные гифки:\n1 - tag1, tag2');
     });
   });
 });

@@ -1,6 +1,5 @@
-import { Chat } from 'node-telegram-bot-api';
-import { Thread } from './thread.manager';
 import { SystemMessage } from '@mistralai/mistralai/models/components';
+import { Thread } from './thread.manager';
 
 export class PromptManager {
   constructor(private readonly env: Env) {}
