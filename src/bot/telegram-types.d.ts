@@ -7,6 +7,7 @@ declare module 'node-telegram-bot-api' {
     story?: object;
     gift?: GiftInfo;
     unique_gift?: UniqueGiftInfo;
+    message_auto_delete_timer_changed?: object;
   }
   interface Audio {
     file_name?: string;

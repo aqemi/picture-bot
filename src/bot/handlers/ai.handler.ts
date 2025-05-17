@@ -44,12 +44,13 @@ export class AiHandler extends TelegramUpdateHandler {
     if (!message) {
       throw new Error('No message provided to ai.handler');
     }
-    if (message.media_group_id) {
-      return; // TODO think how to handle it
-    }
     try {
       const interpreter = new AiMessageInterpreter(this.env, this.api);
       const aiInput = await interpreter.formatMessage(message);
+      if (!aiInput) {
+        console.debug('No AI input extracted from message');
+        return;
+      }
       const thread = getThreadObject(this.env, message.chat.id);
       await thread.reply({
         text: aiInput,

@@ -17,6 +17,10 @@ export class BusinessChatHandler extends AiHandler {
       }
       const interpreter = new AiMessageInterpreter(this.env, this.api);
       const aiInput = await interpreter.formatMessage(message);
+      if (!aiInput) {
+        console.debug('Ignored');
+        return;
+      }
       const thread = getThreadObject(this.env, message.chat.id);
       await thread.replyWithDelay({
         businessConnectionId: message.business_connection_id,

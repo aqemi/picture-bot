@@ -50,16 +50,17 @@ export class GoogleImageSearch extends RegexBasedPlugin {
         chat_id: this.ctx.chatId,
         photo: result,
         reply_to_message_id: this.replyTo,
-        caption: this.ctx.caption ?? undefined,
+        caption: this.ctx.caption,
         reply_markup,
         disable_notification: true,
       });
-    } catch (err) {
+    } catch (error) {
       this.retry += 1;
       if (this.retry > MAX_RETRIES) {
-        throw err;
+        console.error('Max retries hit', error);
+        return await this.notFound();
       } else {
-        console.log(`Retrying (${this.retry})`, err);
+        console.log(`Retrying (${this.retry})`, error);
         await this.run({ resultNumber: nextResultNum });
       }
     }

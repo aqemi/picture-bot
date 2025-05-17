@@ -20,7 +20,6 @@ type ThreadReplyPayloadCommon = {
   displayErrors: boolean;
   rawFallback: boolean;
   postProcessing: boolean;
-  debounce?: boolean;
 };
 
 type ThreadReplyPayload = ThreadReplyPayloadCommon & {};

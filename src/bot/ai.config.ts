@@ -16,7 +16,7 @@ export const config = {
     },
     read: {
       min: 5_000,
-      max: 30_000,
+      max: 15_000,
     },
     typing: {
       min: 2000,

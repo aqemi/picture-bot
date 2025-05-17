@@ -8,7 +8,11 @@ export class AiMessageInterpreter {
     private readonly api: TelegramApi,
   ) {}
 
-  public async formatMessage(message: Message): Promise<string> {
+  public async formatMessage(message: Message): Promise<string | null> {
+    if ((message.media_group_id && !message.text) || message.message_auto_delete_timer_changed) {
+      return null;
+    }
+
     const content = await this.convertContentToText(message);
     // const replyContent = message.reply_to_message ? await this.contentToText(message.reply_to_message) : null;
     // return `${this.encloseInTags('USERNAME', this.getFullname(message))}${replyContent ? this.encloseInTags('REPLY', replyContent) : ''} ${content}`;
