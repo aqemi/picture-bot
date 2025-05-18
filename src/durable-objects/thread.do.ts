@@ -78,9 +78,28 @@ export class ThreadDurableObject extends DurableObject {
       postProcessing,
     };
     await this.threadManager.appendThread({ chatId, role: 'user', content: text });
-    await this.alarm();
+    await this.processReply();
   }
 
+  /**
+   * Replies to a thread with a delay, updating the internal state and scheduling an alarm if necessary.
+   *
+   * This method appends a user message to the thread, checks if the thread is active,
+   * and either reads the business message immediately or marks it to be read later.
+   * It then persists the updated state and sets an alarm for delayed processing based on the thread's activity.
+   *
+   * @param {ThreadReplyDelayPayload} params - The payload containing reply details.
+   * @param {string} params.text - The text content of the reply.
+   * @param {string} params.chatId - The unique identifier of the chat.
+   * @param {string} params.replyTo - The message ID to reply to.
+   * @param {string} params.businessConnectionId - The business connection identifier.
+   * @param {string} params.chatTitle - The title of the chat.
+   * @param {boolean} params.displayErrors - Whether to display errors to the user.
+   * @param {boolean} params.rawFallback - Whether to use raw fallback processing.
+   * @param {Function} params.postProcessing - Optional post-processing function.
+   * @param {string} params.messageId - The unique identifier of the message.
+   * @returns {Promise<void>} A promise that resolves when the reply and delay logic is complete.
+   */
   public async replyWithDelay({
     text,
     chatId,
@@ -102,78 +121,89 @@ export class ThreadDurableObject extends DurableObject {
       rawFallback,
       postProcessing,
     };
-
     await this.threadManager.appendThread({ chatId, role: 'user', content: text });
+
+    const isActive = await this.threadManager.isActive(chatId, config.staleness.business);
+    if (isActive && businessConnectionId) {
+      await this.readBusinessMessage(businessConnectionId, chatId, messageId);
+    } else {
+      this.state.shouldRead = true;
+    }
+    await this.persist();
+
+    if (text.includes('/restart')) {
+      await this.ctx.storage.deleteAlarm();
+    }
+
     const alarm = await this.ctx.storage.getAlarm();
     if (!alarm) {
-      const isActive = await this.threadManager.isActive(chatId, config.staleness.business);
-      if (isActive && businessConnectionId) {
-        await this.readBusinessMessage(businessConnectionId, chatId, messageId);
-      } else {
-        this.state.shouldRead = true;
-      }
       const delayConfig = isActive ? config.delay.read : config.delay.idle;
-      const delay = random(delayConfig.min, delayConfig.max);
-      await this.ctx.storage.put('state', this.state);
+      const delay = this.env.FORCE_BUSINESS ? 5000 : random(delayConfig.min, delayConfig.max);
       await this.ctx.storage.setAlarm(Date.now() + delay);
     }
   }
 
-  async alarm(): Promise<void> {
-    const state = this.state ?? (await this.ctx.storage.get('state'));
+  async alarm(alarmInfo?: AlarmInvocationInfo): Promise<void> {
+    try {
+      await this.processReply();
+    } catch (error) {
+      console.error('Error processing reply in alarm:', error);
+    }
+  }
+
+  private async sendTyping(chatId: number, businessConnectionId?: string) {
+    try {
+      await this.api.sendChatAction({
+        chat_id: chatId,
+        business_connection_id: businessConnectionId,
+        action: 'typing',
+      });
+    } catch (error) {
+      console.error('Error on send typing', error);
+    }
+  }
+
+  private async processReply(): Promise<void> {
+    const state = await this.getState();
     if (!state) {
-      console.error('Missing state');
-      return;
+      throw new Error('No state persisted for this object with id: ${this.ctx.id.toString()}');
     }
     const {
       chatId,
       businessConnectionId,
       replyTo,
       chatTitle,
-      displayErrors,
       rawFallback,
       postProcessing,
       messageId,
       shouldRead = false,
     } = state;
-    try {
-      if (shouldRead && businessConnectionId) {
-        await this.readBusinessMessage(businessConnectionId, chatId, messageId);
-        const delay = random(config.delay.read.min, config.delay.read.max);
-        await this.sleep(delay);
-      }
-      const typingDuration = random(config.delay.typing.min, config.delay.typing.max);
-      try {
-        await this.api.sendChatAction({
-          chat_id: chatId,
-          business_connection_id: businessConnectionId,
-          action: 'typing',
-        });
-      } catch (error) {
-        console.error('Error on send typing', error);
-      }
-      const [response] = await Promise.all([this.runCompletion(chatId, chatTitle), this.sleep(typingDuration)]);
-      const responseTransformer = new AiResponseTransformer(
-        this.env,
-        this.api,
-        this.responseHelper,
-        new StickerManager(this.api, this.env),
-        new GifManager(this.env, new PromptManager(this.env)),
-      );
-      await responseTransformer.send(response, {
-        chatId,
-        replyTo,
-        businessConnectionId,
-        postProcessing,
-        rawFallback,
-      });
-      await this.threadManager.appendThread({ chatId, role: 'assistant', content: response.raw });
-    } catch (error) {
-      console.error('Error in alarm', error);
-      if (displayErrors) {
-        await this.responseHelper.sendError(chatId, error, replyTo);
-      }
+    if (shouldRead && businessConnectionId) {
+      await this.readBusinessMessage(businessConnectionId, chatId, messageId);
+      const delay = random(config.delay.read.min, config.delay.read.max);
+      await this.sleep(delay);
     }
+
+    const typingDuration = random(config.delay.typing.min, config.delay.typing.max);
+    await this.sendTyping(chatId, businessConnectionId);
+
+    const [response] = await Promise.all([this.runCompletion(chatId, chatTitle), this.sleep(typingDuration)]);
+    const responseTransformer = new AiResponseTransformer(
+      this.env,
+      this.api,
+      this.responseHelper,
+      new StickerManager(this.api, this.env),
+      new GifManager(this.env),
+    );
+    await responseTransformer.send(response, {
+      chatId,
+      replyTo,
+      businessConnectionId,
+      postProcessing,
+      rawFallback,
+    });
+
+    await this.threadManager.appendThread({ chatId, role: 'assistant', content: response.raw });
   }
 
   private async runCompletion(chatId: number, chatTitle: string | null) {
@@ -196,6 +226,15 @@ export class ThreadDurableObject extends DurableObject {
     } catch (error) {
       console.error('Error on readBusinessMessage', error);
     }
+  }
+
+  private async persist(): Promise<void> {
+    await this.ctx.storage.put('state', this.state);
+  }
+
+  private async getState(): Promise<ThreadObjectState | undefined> {
+    const state = this.state ?? (await this.ctx.storage.get('state'));
+    return state;
   }
 }
 
