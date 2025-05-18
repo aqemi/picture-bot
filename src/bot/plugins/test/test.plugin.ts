@@ -16,7 +16,6 @@ export class TestPlugin extends RegexBasedPlugin {
       }
     }
 
-    await this.responseHelper.sendTyping(this.ctx.chatId);
     await this.responseHelper.sendJSON(this.ctx.chatId, {
       s: 'string',
       n: 1,

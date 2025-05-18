@@ -7,8 +7,8 @@ import { random } from '../../utils/random';
 export class CopyStickerPackHandler extends TelegramUpdateHandler {
   protected readonly MAX_INITIAL_STICKERS = 50;
 
-  async match(payload: TelegramUpdate) {
-    return !!payload.message?.sticker && payload.message?.chat.type === 'private';
+  async match({ message }: TelegramUpdate) {
+    return !!message?.sticker && message?.chat.type === 'private' && message.reply_to_message?.text === '/copysticker';
   }
 
   async handle(payload: TelegramUpdate) {

@@ -2,7 +2,7 @@ import { ThreadManager } from '../../../managers/thread.manager';
 import { RegexBasedPlugin } from '../regex-based.plugin';
 
 export class RestartPromptPlugin extends RegexBasedPlugin {
-  protected regex = /^!restart$/;
+  protected regex = /^\/restart$/;
   protected queryRequired = false;
   public async run(): Promise<void> {
     const threadManager = new ThreadManager(this.env);

@@ -17,7 +17,7 @@ export class StoreGifHandler extends TelegramUpdateHandler {
 
   async match(payload: TelegramUpdate) {
     const { message } = payload;
-    return !!message?.animation && message?.chat.type === 'private' && message.reply_to_message?.text === '!storegif';
+    return !!message?.animation && message?.chat.type === 'private' && message.reply_to_message?.text === '/storegif';
   }
 
   async handle(payload: TelegramUpdate) {
@@ -33,8 +33,12 @@ export class StoreGifHandler extends TelegramUpdateHandler {
     }
     const { result: file } = await this.api.getFile({ file_id: thumb.file_id });
     const url = await this.api.getFileUrl(file);
-    const gifManager = new GifManager(this.env, new PromptManager(this.env));
+    const gifManager = new GifManager(this.env);
     const description = await gifManager.addGif(message.animation!.file_id, url);
+
+    const prompt = await gifManager.getPrompt();
+    const promptManager = new PromptManager(this.env);
+    await promptManager.updateSystemPrompt('gif', prompt);
 
     await this.responseHelper.sendJSON(
       message.chat.id,
