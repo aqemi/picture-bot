@@ -11,7 +11,7 @@ export class ResponseHelper {
   ) {}
 
   public async sendJSON(chatId: number, json: object | string, replyTo?: number): Promise<void> {
-    const stringified = typeof json === 'string' ? json : JSON.stringify(json, null, 2);
+    const stringified = typeof json === 'string' ? json : JSON.stringify(json, null, 2).replaceAll('\\"', '\\\\"');
     const open = '```json\n';
     const close = '\n```';
     const text = `${open}${stringified}${close}`;

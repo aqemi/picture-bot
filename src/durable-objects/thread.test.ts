@@ -8,16 +8,16 @@ import { ThreadManager } from '../managers/thread.manager';
 describe('ThreadDurableObject', () => {
   config.delay = {
     idle: {
-      min: 0,
-      max: 0,
+      min: 25,
+      max: 25,
     },
     read: {
-      min: 0,
-      max: 0,
+      min: 25,
+      max: 25,
     },
     typing: {
-      min: 0,
-      max: 0,
+      min: 25,
+      max: 25,
     },
   };
 
@@ -171,8 +171,9 @@ describe('ThreadDurableObject', () => {
       );
     });
   });
+
   describe('replyWithDelay', () => {
-    it('should reply', async () => {
+    it('should replyd', async () => {
       const id = env.THREAD.idFromName('123');
       const stub = env.THREAD.get(id);
       const payload = {

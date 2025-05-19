@@ -12,7 +12,8 @@ export function getBotMentionTag(env: Env) {
 
 export function getSanitizeRegex(env: Env): RegExp {
   const pattern = Object.values(env)
-    .filter((x) => typeof x === 'string')
+    .filter((x) => typeof x === 'string' && x)
+    .map(x => x.trim())
     .join('|');
   return new RegExp(pattern, 'g');
 }

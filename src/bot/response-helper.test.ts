@@ -11,6 +11,7 @@ describe('ResponseHelper', () => {
 
   const mockEnv = {
     AI_GATEWAY_ID: 'sensitive',
+    FORCE_BUSINESS: '',
   } as Env;
   const responseHelper = new ResponseHelper(mockApi, mockEnv);
 
@@ -21,14 +22,14 @@ describe('ResponseHelper', () => {
   describe('sendJSON', () => {
     it('should send a JSON object as a formatted string', async () => {
       const chatId = 123;
-      const json = { key: 'value' };
+      const json = { key: 'value', key2: 'value="1"' };
       const replyTo = 456;
 
       await responseHelper.sendJSON(chatId, json, replyTo);
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith({
         chat_id: chatId,
-        text: '```json\n{\n  "key": "value"\n}\n```',
+        text: '```json\n{\n  "key": "value",\n  "key2": "value=\\\\"1\\\\""\n}\n```',
         parse_mode: 'MarkdownV2',
         reply_to_message_id: replyTo,
       });
