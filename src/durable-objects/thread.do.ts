@@ -17,7 +17,6 @@ type ThreadReplyPayloadCommon = {
   replyTo?: number;
   businessConnectionId?: string;
   chatTitle: string | null;
-  displayErrors: boolean;
   rawFallback: boolean;
   postProcessing: boolean;
 };
@@ -31,7 +30,6 @@ type ThreadObjectState = {
   businessConnectionId?: string;
   replyTo?: number;
   chatTitle: string | null;
-  displayErrors: boolean;
   rawFallback: boolean;
   postProcessing: boolean;
   shouldRead?: boolean;
@@ -63,7 +61,6 @@ export class ThreadDurableObject extends DurableObject {
     messageId,
     businessConnectionId,
     chatTitle,
-    displayErrors,
     rawFallback,
     postProcessing,
   }: ThreadReplyPayload): Promise<void> {
@@ -73,7 +70,6 @@ export class ThreadDurableObject extends DurableObject {
       messageId,
       businessConnectionId,
       chatTitle,
-      displayErrors,
       rawFallback,
       postProcessing,
     };
@@ -94,7 +90,6 @@ export class ThreadDurableObject extends DurableObject {
    * @param {string} params.replyTo - The message ID to reply to.
    * @param {string} params.businessConnectionId - The business connection identifier.
    * @param {string} params.chatTitle - The title of the chat.
-   * @param {boolean} params.displayErrors - Whether to display errors to the user.
    * @param {boolean} params.rawFallback - Whether to use raw fallback processing.
    * @param {Function} params.postProcessing - Optional post-processing function.
    * @param {string} params.messageId - The unique identifier of the message.
@@ -106,7 +101,6 @@ export class ThreadDurableObject extends DurableObject {
     replyTo,
     businessConnectionId,
     chatTitle,
-    displayErrors,
     rawFallback,
     postProcessing,
     messageId,
@@ -117,7 +111,6 @@ export class ThreadDurableObject extends DurableObject {
       messageId,
       businessConnectionId,
       chatTitle,
-      displayErrors,
       rawFallback,
       postProcessing,
     };
@@ -164,10 +157,6 @@ export class ThreadDurableObject extends DurableObject {
   }
 
   private async processReply(): Promise<void> {
-    const state = await this.getState();
-    if (!state) {
-      throw new Error('No state persisted for this object with id: ${this.ctx.id.toString()}');
-    }
     const {
       chatId,
       businessConnectionId,
@@ -177,7 +166,8 @@ export class ThreadDurableObject extends DurableObject {
       postProcessing,
       messageId,
       shouldRead = false,
-    } = state;
+    } = await this.getState();
+
     if (shouldRead && businessConnectionId) {
       await this.readBusinessMessage(businessConnectionId, chatId, messageId);
       const delay = random(config.delay.read.min, config.delay.read.max);
@@ -232,8 +222,11 @@ export class ThreadDurableObject extends DurableObject {
     await this.ctx.storage.put('state', this.state);
   }
 
-  private async getState(): Promise<ThreadObjectState | undefined> {
+  private async getState(): Promise<ThreadObjectState> {
     const state = this.state ?? (await this.ctx.storage.get('state'));
+    if (!state) {
+      throw new Error('No state persisted for this object with id: ${this.ctx.id.toString()}');
+    }
     return state;
   }
 }

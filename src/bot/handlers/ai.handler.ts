@@ -59,7 +59,6 @@ export class AiHandler extends TelegramUpdateHandler {
         businessConnectionId: message.business_connection_id,
         chatTitle: interpreter.getChatTitle(message),
         messageId: message.message_id,
-        displayErrors: true,
         rawFallback: true,
         postProcessing: true,
       });
