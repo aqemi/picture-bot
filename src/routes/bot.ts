@@ -9,10 +9,10 @@ import {
   TelegramTextHandler,
   TelegramUpdateHandlerDerived,
 } from '../bot/handlers';
+import { ForwardReplyHandler } from '../bot/handlers/forward-reply.hander';
 import { LogHandler } from '../bot/handlers/log.handler';
 import { ResponseHelper } from '../bot/response-helper';
 import { TelegramApi } from '../bot/telegram-api';
-import { ForwardReplyHandler } from '../bot/handlers/forward-reply.hander';
 
 const handlers: TelegramUpdateHandlerDerived[] = [
   BusinessChatHandler,

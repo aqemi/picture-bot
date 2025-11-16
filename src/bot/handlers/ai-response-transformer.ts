@@ -52,11 +52,11 @@ export class AiResponseTransformer {
       }
     }
 
-    if (response.sticker) {
+    if (typeof response.sticker === 'string' && response.sticker) {
       await this.sendSticker(response.sticker, chatId, businessConnectionId);
     }
 
-    if (response.gif) {
+    if (typeof response.gif === 'number') {
       await this.sendGif(response.gif, chatId, businessConnectionId);
     }
   }

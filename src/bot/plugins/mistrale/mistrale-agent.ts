@@ -82,7 +82,7 @@ export class MistraleAgent {
     }
     if (
       'gif' in response &&
-      ((typeof response.gif !== 'string' && typeof response.gif !== 'number') || !response.gif)
+      ((typeof response.gif !== 'string' && typeof response.gif !== 'number'))
     ) {
       return false;
     }

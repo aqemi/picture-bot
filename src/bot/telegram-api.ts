@@ -250,4 +250,21 @@ export class TelegramApi {
   public async readBusinessMessage(options: ReadBusinessMessageOptions) {
     return await this.makeRequest('readBusinessMessage', options);
   }
+
+  public async sendPhotoAsBlob(options: Omit<SendPhotoOptions, 'photo'> & { photo: Blob }) {
+    const formdata = new FormData();
+    Object.entries(options).forEach(([key, value]) => {
+      formdata.set(key, value);
+    });
+
+    const response = await fetch(`https://api.telegram.org/bot${this.token}/sendPhoto`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+      },
+      body: formdata,
+    });
+    await throwOnFetchError(response);
+    return await response.json<TelegramResponse<true>>();
+  }
 }

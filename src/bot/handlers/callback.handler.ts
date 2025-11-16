@@ -5,8 +5,9 @@ import { mention } from '../../utils/mention';
 import { GoogleImageSearch, InvocationContext, Tenor, Youtube } from '../plugins';
 import { RegexBasedPluginDerived } from '../plugins/regex-based.plugin';
 import { TelegramUpdateHandler } from './base.handler';
+import { DrawPlugin } from '../plugins/draw/draw.plugin';
 
-const plugins: RegexBasedPluginDerived[] = [GoogleImageSearch, Youtube, Tenor];
+const plugins: RegexBasedPluginDerived[] = [GoogleImageSearch, Youtube, Tenor, DrawPlugin];
 
 type Callback = ResponseCallbackData & {
   queryId: string;
