@@ -1,27 +1,47 @@
+import { throwOnFetchError } from '../../../utils';
 import { RegexBasedPlugin } from '../regex-based.plugin';
 
+interface XaiImageResponse {
+  data: Array<{
+    url?: string;
+    b64_json?: string;
+  }>;
+}
+
 export class DrawPlugin extends RegexBasedPlugin {
-  protected regex = /^(?:\/draw)(?: (.+))?$/i;
+  protected regex = /^(?:Алиса|грок|@grok)(?: (.+))?$/iu;
 
   public async run(): Promise<void> {
-    const prompt = this.query;
-    const inputs = {
-      prompt,
-      height: 768,
-      width: 768,
-      maxTokens: 512,
-      guidance: 7,
-    };
+    this.api.sendChatAction({ action: 'upload_photo', chat_id: this.ctx.chatId });
 
-    const response = await this.env.AI.run('@cf/stabilityai/stable-diffusion-xl-base-1.0', inputs);
-    const blob = await new Response(response).blob();
+    const response = await fetch('https://api.x.ai/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.env.XAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'grok-2-image-1212',
+        prompt: this.query,
+        response_format: 'url',
+      }),
+    });
 
-    await this.api.sendPhotoAsBlob({
+    await throwOnFetchError(response);
+
+    const result: XaiImageResponse = await response.json();
+
+    const imageUrl = result.data[0]?.url;
+    if (!imageUrl) {
+      throw new Error('No image URL in response');
+    }
+
+    await this.api.sendPhoto({
       chat_id: this.ctx.chatId,
-      photo: blob,
+      photo: imageUrl,
       reply_to_message_id: this.replyTo,
       caption: this.ctx.caption ?? '',
-      reply_markup: JSON.stringify(this.getKeyboard(1)) as any,
+      reply_markup: this.getKeyboard(0),
       disable_notification: true,
     });
   }

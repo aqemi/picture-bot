@@ -1,7 +1,6 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
-import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, TestPlugin, Youtube } from '../plugins';
-import { DrawPlugin } from '../plugins/draw/draw.plugin';
+import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, TestPlugin, Youtube, DrawPlugin } from '../plugins';
 import { RestartPromptPlugin } from '../plugins/mistrale/restart.plugin';
 import { TelegramUpdateHandler } from './base.handler';
 
