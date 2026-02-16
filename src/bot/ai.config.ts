@@ -3,7 +3,7 @@ export const config = {
    * Seconds
    */
   staleness: {
-    default: 60,
+    default: 10,
     business: 15 * 60,
   },
   /**

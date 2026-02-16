@@ -17,7 +17,7 @@ export class StoreGifHandler extends TelegramUpdateHandler {
 
   async match(payload: TelegramUpdate) {
     const { message } = payload;
-    return !!message?.animation && message?.chat.type === 'private' && message.reply_to_message?.text === '/storegif';
+    return !!message?.animation && message?.chat.type === 'private' && message.reply_to_message?.text === '/addgif';
   }
 
   async handle(payload: TelegramUpdate) {
