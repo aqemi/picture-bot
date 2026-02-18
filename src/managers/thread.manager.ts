@@ -30,7 +30,7 @@ export class ThreadManager {
 
   public async getThread(chatId: number): Promise<Thread> {
     const { results } = await this.env.DB.prepare(
-      'SELECT * FROM threads WHERE chatId = ? ORDER BY id DESC LIMIT 10',
+      `SELECT * FROM threads WHERE chatId = ? AND createdAt > DATETIME(CURRENT_TIMESTAMP, '-1 hour') ORDER BY id DESC LIMIT 10`,
     )
       .bind(chatId)
       .all<ThreadMessage>();

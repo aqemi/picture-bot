@@ -21,7 +21,7 @@ DROP TRIGGER IF EXISTS delete_old_messages;
 CREATE TRIGGER delete_old_messages AFTER INSERT ON threads BEGIN
 DELETE FROM threads
 WHERE
-  createdAt < datetime ('now', '-3 days');
+  createdAt < datetime ('now', '-1 days');
 
 END;
 

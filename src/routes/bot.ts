@@ -18,13 +18,13 @@ import { getBotEndpoint } from '../utils';
 const handlers: TelegramUpdateHandlerDerived[] = [
   BusinessChatHandler,
   LogHandler,
-  AiHandler,
   ForwardReplyHandler,
   TelegramTextHandler,
   TelegramCallbackHandler,
   CopyStickerPackHandler,
   CopyStickerPackContinueHandler,
   StoreGifHandler,
+  AiHandler,
 ];
 
 export async function onTelegramUpdate(request: Request, env: Env): Promise<Response> {
