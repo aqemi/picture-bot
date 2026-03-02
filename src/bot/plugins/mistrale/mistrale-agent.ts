@@ -48,8 +48,8 @@ export class MistraleAgent {
   }
 
   private async getPrompt(traits: ConversationTraits): Promise<Thread> {
-    const dynamicPrompt = await this.promptManager.getSystemPrompt();
-    const finalPrompt = [...config.demo.basic, ...dynamicPrompt, ...(traits.aggressive ? config.demo.aggressive : [])];
+    const systemPrompt = await this.promptManager.getSystemPrompt();
+    const finalPrompt = [...systemPrompt, ...config.demo.basic, ...(traits.aggressive ? config.demo.aggressive : [])];
 
     return finalPrompt.sort((a, b) => {
       if (a.role === 'system' && b.role !== 'system') {

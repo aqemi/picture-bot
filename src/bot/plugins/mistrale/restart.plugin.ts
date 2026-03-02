@@ -1,8 +1,11 @@
+import { getBotCommandRegex } from '../../../utils';
 import { ThreadManager } from '../../../managers/thread.manager';
 import { RegexBasedPlugin } from '../regex-based.plugin';
 
 export class RestartPromptPlugin extends RegexBasedPlugin {
-  protected regex = /^\/clear/;
+  protected get regex() {
+    return getBotCommandRegex('clear', this.env.BOT_USERNAME);
+  }
   protected queryRequired = false;
   public async run(): Promise<void> {
     const threadManager = new ThreadManager(this.env);

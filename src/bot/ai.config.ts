@@ -3,7 +3,7 @@ export const config = {
    * Seconds
    */
   staleness: {
-    default: 10,
+    default: 15,
     business: 15 * 60,
   },
   /**
@@ -46,7 +46,6 @@ export const config = {
       { role: 'assistant', content: 'пидора ответ' },
       { role: 'user', content: 'путин' },
       { role: 'assistant', content: 'хуйло' },
-
     ],
   },
 };

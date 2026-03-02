@@ -8,6 +8,7 @@ import { GifManager } from '../managers/gif.manager';
 import { PromptManager } from '../managers/prompt.manager';
 import { StickerManager } from '../managers/sticker.manager';
 import { ThreadManager } from '../managers/thread.manager';
+import { getBotCommandRegex } from '../utils';
 import { random } from '../utils/random';
 
 type ThreadReplyPayloadCommon = {
@@ -124,7 +125,7 @@ export class ThreadDurableObject extends DurableObject {
     }
     await this.persist();
 
-    if (text.includes('/restart')) {
+    if (getBotCommandRegex('clear', this.env.BOT_USERNAME).test(text)) {
       await this.ctx.storage.deleteAlarm();
     }
 
@@ -198,7 +199,8 @@ export class ThreadDurableObject extends DurableObject {
       rawFallback,
     });
 
-    await this.threadManager.appendThread({ chatId, role: 'assistant', content: response.raw });
+    const dbContent = response.text ? JSON.stringify({ text: response.text }) : response.raw;
+    await this.threadManager.appendThread({ chatId, role: 'assistant', content: dbContent });
   }
 
   private async runCompletion(chatId: number, chatTitle: string | null): Promise<AiResponse | void> {

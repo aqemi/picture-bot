@@ -1,38 +1,64 @@
 import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
-import { GoogleImageSearch, InvocationContext, Keyboard, PluginDerived, Tenor, TestPlugin, Youtube, DrawPlugin } from '../plugins';
+import {
+  BasePlugin,
+  DrawPlugin,
+  GoogleImageSearch,
+  InvocationContext,
+  Keyboard,
+  PluginDerived,
+  Tenor,
+  TestPlugin,
+  Youtube,
+} from '../plugins';
 import { RestartPromptPlugin } from '../plugins/mistrale/restart.plugin';
 import { TelegramUpdateHandler } from './base.handler';
 
-const plugins: PluginDerived[] = [GoogleImageSearch, Youtube, Tenor, DrawPlugin, Keyboard, RestartPromptPlugin, TestPlugin];
+const plugins: PluginDerived[] = [
+  GoogleImageSearch,
+  Youtube,
+  Tenor,
+  DrawPlugin,
+  Keyboard,
+  RestartPromptPlugin,
+  TestPlugin,
+];
 
 export class TelegramTextHandler extends TelegramUpdateHandler {
+  private plugin?: BasePlugin;
+
   async match(payload: TelegramUpdate) {
-    return !!payload?.message?.text;
+    const { message } = payload;
+    if (!message?.text) {
+      return false;
+    }
+    const chatId = defined(message?.chat.id, 'chatId');
+
+    const ctx: InvocationContext = {
+      chatId,
+      messageId: defined(message?.message_id, 'message.message_id'),
+      replyToId: message?.reply_to_message?.message_id,
+      initiatorId: defined(message?.from?.id, 'message.from.id'),
+      initiatorName: defined(message?.from?.username ?? message?.from?.first_name, 'message?.from?.first_name'),
+      text: defined(message?.text, 'message.text'),
+      replyToText: message?.reply_to_message?.text,
+    };
+
+    for (const Plugin of plugins) {
+      const plugin = new Plugin(ctx, this.api, this.env, this.responseHelper);
+      if (await plugin.match()) {
+        this.plugin = plugin;
+        return true;
+      }
+    }
+    return false;
   }
 
   async handle(payload: TelegramUpdate) {
     const { message } = payload;
     const chatId = defined(message?.chat.id, 'chatId');
     try {
-      const ctx: InvocationContext = {
-        chatId,
-        messageId: defined(message?.message_id, 'message.message_id'),
-        replyToId: message?.reply_to_message?.message_id,
-        initiatorId: defined(message?.from?.id, 'message.from.id'),
-        initiatorName: defined(message?.from?.username ?? message?.from?.first_name, 'message?.from?.first_name'),
-        text: defined(message?.text, 'message.text'),
-        replyToText: message?.reply_to_message?.text,
-      };
-
-      for (const Plugin of plugins) {
-        const plugin = new Plugin(ctx, this.api, this.env, this.responseHelper);
-        if (await plugin.match()) {
-          return await plugin.run({});
-        }
-      }
-
-      console.debug('No match for message', payload);
+      await this.plugin?.run({});
     } catch (error) {
       await this.responseHelper.sendError(chatId, error, message?.message_id);
     }

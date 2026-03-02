@@ -21,7 +21,7 @@ export class DrawPlugin extends RegexBasedPlugin {
         Authorization: `Bearer ${this.env.XAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'grok-2-image-1212',
+        model: 'grok-imagine-image',
         prompt: this.query,
         response_format: 'url',
       }),
