@@ -1,7 +1,13 @@
-import { Mistral } from '@mistralai/mistralai';
+import { throwOnFetchError } from '../../../utils';
 import { BasePlugin } from '../base.plugin';
 
 const REGEX = /[їєіґ]/iu;
+
+interface XaiChatResponse {
+  choices: Array<{
+    message: { content: string };
+  }>;
+}
 
 export class TranslatePlugin extends BasePlugin {
   public match(): boolean {
@@ -11,27 +17,31 @@ export class TranslatePlugin extends BasePlugin {
   public async run(): Promise<void> {
     this.api.sendChatAction({ action: 'typing', chat_id: this.ctx.chatId });
 
-    const client = new Mistral({
-      apiKey: this.env.MISTRAL_API_KEY,
-      serverURL: `https://gateway.ai.cloudflare.com/v1/${this.env.CF_ACCOUNT_ID}/${this.env.AI_GATEWAY_ID}/mistral`,
+    const response = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.env.XAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'grok-3-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a translator. Translate the user message to Chuvash language. Return only the translation, nothing else.',
+          },
+          {
+            role: 'user',
+            content: this.ctx.text,
+          },
+        ],
+      }),
     });
 
-    const { choices } = await client.chat.complete({
-      model: 'mistral-large-latest',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a translator. Translate the user message to Chuvash language. Return only the translation, nothing else.',
-        },
-        {
-          role: 'user',
-          content: this.ctx.text,
-        },
-      ],
-    });
+    await throwOnFetchError(response);
 
-    const content = choices?.[0]?.message.content;
-    const translation = typeof content === 'string' ? content : null;
+    const result: XaiChatResponse = await response.json();
+    const translation = result.choices[0]?.message.content;
 
     if (!translation) {
       throw new Error('No translation in response');
