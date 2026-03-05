@@ -2,6 +2,7 @@ import type { Update as TelegramUpdate } from 'node-telegram-bot-api';
 import { defined } from '../../utils';
 import {
   BasePlugin,
+  TranslatePlugin,
   DrawPlugin,
   GoogleImageSearch,
   InvocationContext,
@@ -22,6 +23,7 @@ const plugins: PluginDerived[] = [
   Keyboard,
   RestartPromptPlugin,
   TestPlugin,
+  TranslatePlugin,
 ];
 
 export class TelegramTextHandler extends TelegramUpdateHandler {
@@ -29,7 +31,7 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
 
   async match(payload: TelegramUpdate) {
     const { message } = payload;
-    if (!message?.text) {
+    if (!message?.text && !message?.caption) {
       return false;
     }
     const chatId = defined(message?.chat.id, 'chatId');
@@ -40,8 +42,9 @@ export class TelegramTextHandler extends TelegramUpdateHandler {
       replyToId: message?.reply_to_message?.message_id,
       initiatorId: defined(message?.from?.id, 'message.from.id'),
       initiatorName: defined(message?.from?.username ?? message?.from?.first_name, 'message?.from?.first_name'),
-      text: defined(message?.text, 'message.text'),
+      text: defined(message?.caption || message?.text, 'message.text|caption'),
       replyToText: message?.reply_to_message?.text,
+      isForwarded: !!message.forward_date
     };
 
     for (const Plugin of plugins) {

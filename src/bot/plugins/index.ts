@@ -5,3 +5,4 @@ export * from './tenor/tenor.plugin';
 export * from './keyboard/keyboard.plugin';
 export * from './test/test.plugin';
 export * from './draw/draw.plugin';
+export * from './translate/translate.plugin';
